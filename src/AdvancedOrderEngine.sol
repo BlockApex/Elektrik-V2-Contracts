@@ -46,6 +46,32 @@ contract AdvancedOrderEngine {
             revert ZeroFacilitatorTargetAddress(); // TBD: use generic error message i.e. ZeroAddress()
         }
 
+        for (uint256 i; i < orders.length; ) {
+            OrderEngine.Order calldata order = orders[i];
+
+            bytes32 orderHash;
+
+            if (block.timestamp > order.validTill) {
+                revert OrderExpired(orderHash);
+            }
+
+            if (order.buyTokenAmount == 0 || order.sellTokenAmount == 0) {
+                revert ZeroTokenAmounts();
+            }
+
+            if (
+                order.maker == address(0) ||
+                order.buyToken == address(0) ||
+                order.sellToken == address(0)
+            ) {
+                revert ZeroAddress();
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+
         // Loop start
         // Perform order specific sanity checks
         // Verify signatjures
