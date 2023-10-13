@@ -1,0 +1,11 @@
+name: Slither Analysis
+on:
+  push:
+    branches:
+      - '**'  # This wildcard ensures that all branches are in scope
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: crytic/slither-action@v0.3.0
