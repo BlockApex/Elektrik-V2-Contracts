@@ -83,6 +83,8 @@ contract AdvancedOrderEngine is EIP712 {
                 revert ZeroAddress();
             }
 
+            // STUB: PARTIAL FILL FEATURE //
+
             // TBD: debatable, can take signing scheme in order schema or can verify like 1inch
             if (order.isContract()) {
                 if (
