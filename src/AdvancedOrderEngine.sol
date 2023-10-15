@@ -33,6 +33,8 @@ contract AdvancedOrderEngine is EIP712 {
         bytes calldata facilitatorInteractionCalldata,
         address facilitatorInteractionTargetContract
     ) external {
+        // STUB: ONLY OPERATOR //
+
         // TBD: max array length check needed? Considering fn will be restricted to operators only
 
         /** 
@@ -98,6 +100,8 @@ contract AdvancedOrderEngine is EIP712 {
                 }
             }
 
+            // STUB: VERIFY PREDICATES //
+
             if (order.preInteraction.length >= 20) {
                 // proceed only if interaction length is enough to store address
                 (
@@ -113,23 +117,18 @@ contract AdvancedOrderEngine is EIP712 {
                     );
             }
 
+            // STUB: TRANSER FUNDS FROM MAKER TO VAULT //
+
             unchecked {
                 ++i;
             }
         }
 
-        // Loop start
-        // Perform order specific sanity checks
-        // Verify signatjures
-        // Verify predicates
-        // Call pre-interaction hook
-        // Transfer funds from maker to vault
-        // Loop end
-        // Call facilitator interaction
-        // Loop start
-        // Ensure facilitator is respecting maker price
-        // Transfer funds from vault to maker
-        // Call post-interaction hook
-        // Emit event (decide where to emit event, as its considered as an effect so maybe do it somewhere in the start)
+        // STUB: CALL FACILITATOR INTERACTION //
+        // STUB: START ANOTHER LOOP //
+        // STUB: ENSURE FACILITATOR IS RESPECTING MAKER PRICE //
+        // STUB: TRANSFER FUNDS FROM VAULT TO MAKER //
+        // STUB: CALL POST-INTERACTION HOOK //
+        // STUB: EMIT EVENT (decide where to emit event, as its considered as an effect so maybe do it somewhere in the start) //
     }
 }
