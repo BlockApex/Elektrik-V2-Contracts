@@ -21,4 +21,25 @@ library OrderEngine {
         bytes preInteraction;
         bytes postInteraction;
     }
+
+    bytes32 public constant ORDER_TYPE_HASH =
+        keccak256(
+            "Order("
+            "uint256 nonce,"
+            "uint256 validTill,"
+            "uint256 sellTokenAmount,"
+            "uint256 buyTokenAmount,"
+            "uint256 feeAmounts,"
+            "address maker,"
+            "address taker,"
+            "address recipient,"
+            "address sellToken,"
+            "address buyToken,"
+            "bool isPartiallyFillable,"
+            "bytes32 extraData,"
+            "bytes predicates,"
+            "bytes preInteraction,"
+            "bytes postInteraction"
+            ")"
+        );
 }
