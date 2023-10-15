@@ -6,6 +6,7 @@ libs = ['lib']
 
 auto_detect_solc = false
 solc = '0.8.21'
+via_ir = true
 optimizer = true
 optimizer_runs = 10_000
 
