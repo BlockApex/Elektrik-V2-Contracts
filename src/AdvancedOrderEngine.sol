@@ -1,11 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
+import {EIP712} from "openzeppelin/utils/cryptography/EIP712.sol";
+import {IERC1271} from "openzeppelin/interfaces/IERC1271.sol";
 import {OrderEngine} from "./libraries/OrderEngine.sol";
 import "./AdvancedOrderEngineErrors.sol";
 
-contract AdvancedOrderEngine {
+contract AdvancedOrderEngine is EIP712 {
     using OrderEngine for OrderEngine.Order;
+
+    constructor(
+        string memory name,
+        string memory version
+    ) EIP712(name, version) {}
 
     /**
      * @notice Fills multiple orders by processing the specified orders and clearing prices.
