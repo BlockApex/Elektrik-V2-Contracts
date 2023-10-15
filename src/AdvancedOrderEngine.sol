@@ -51,7 +51,10 @@ contract AdvancedOrderEngine {
 
             bytes32 orderHash;
 
-            if (block.timestamp > order.validTill) {
+            if (
+                block.timestamp > order.validTill
+            ) // TBD: any check required for nonce?
+            {
                 revert OrderExpired(orderHash);
             }
 
