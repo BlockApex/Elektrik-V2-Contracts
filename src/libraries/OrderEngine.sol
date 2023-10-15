@@ -42,4 +42,29 @@ library OrderEngine {
             "bytes postInteraction"
             ")"
         );
+
+    function hash(Order calldata order) public pure returns (bytes32) {
+        return (
+            keccak256(
+                abi.encode(
+                    ORDER_TYPE_HASH,
+                    order.nonce,
+                    order.validTill,
+                    order.sellTokenAmount,
+                    order.buyTokenAmount,
+                    order.feeAmounts,
+                    order.maker,
+                    order.taker,
+                    order.recipient,
+                    order.sellToken,
+                    order.buyToken,
+                    order.isPartiallyFillable,
+                    order.extraData,
+                    keccak256(order.predicates),
+                    keccak256(order.preInteraction),
+                    keccak256(order.postInteraction)
+                )
+            )
+        );
+    }
 }

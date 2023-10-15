@@ -56,7 +56,8 @@ contract AdvancedOrderEngine is EIP712 {
         for (uint256 i; i < orders.length; ) {
             OrderEngine.Order calldata order = orders[i];
 
-            bytes32 orderHash;
+            bytes32 orderHash = order.hash();
+            bytes32 orderMessageHash = _hashTypedDataV4(orderHash);
 
             if (block.timestamp > order.validTill) {
                 revert OrderExpired(orderHash);
