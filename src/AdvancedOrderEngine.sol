@@ -98,6 +98,21 @@ contract AdvancedOrderEngine is EIP712 {
                 }
             }
 
+            if (order.preInteraction.length >= 20) {
+                // proceed only if interaction length is enough to store address
+                (
+                    address interactionTarget,
+                    bytes calldata interactionData
+                ) = order.preInteraction.decodeTargetAndCalldata();
+                IPreInteractionNotificationReceiver(interactionTarget)
+                    .fillOrderPreInteraction(
+                        orderHash,
+                        order.maker,
+                        clearingPrices[i],
+                        interactionData
+                    );
+            }
+
             unchecked {
                 ++i;
             }
