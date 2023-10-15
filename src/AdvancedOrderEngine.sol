@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {EIP712} from "openzeppelin/utils/cryptography/EIP712.sol";
+import {EIP712, ECDSA} from "openzeppelin/utils/cryptography/EIP712.sol";
 import {IERC1271} from "openzeppelin/interfaces/IERC1271.sol";
 import {OrderEngine} from "./libraries/OrderEngine.sol";
 import "./AdvancedOrderEngineErrors.sol";
@@ -75,6 +75,23 @@ contract AdvancedOrderEngine is EIP712 {
                 order.sellToken == address(0)
             ) {
                 revert ZeroAddress();
+            }
+
+            // TBD: debatable, can take signing scheme in order schema or can verify like 1inch
+            if (order.isContract()) {
+                if (
+                    !(IERC1271(order.maker).isValidSignature(
+                        orderMessageHash,
+                        signature
+                    ) == IERC1271.isValidSignature.selector)
+                ) {
+                    revert BadSignature();
+                }
+            } else {
+                address signer = ECDSA.recover(orderMessageHash, signature);
+                if (signer != order.maker) {
+                    revert BadSignature();
+                }
             }
 
             unchecked {

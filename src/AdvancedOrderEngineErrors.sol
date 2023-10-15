@@ -7,3 +7,4 @@ error EmptyOrdersArray();
 error OrderExpired(bytes32 orderHash);
 error ZeroTokenAmounts();
 error ZeroAddress();
+error BadSignature();

@@ -67,4 +67,8 @@ library OrderEngine {
             )
         );
     }
+
+    function isContract(Order calldata order) public view returns (bool) {
+        return order.maker.code.length > 0;
+    }
 }
