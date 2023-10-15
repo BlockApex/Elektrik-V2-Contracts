@@ -20,6 +20,5 @@ library OrderEngine {
         bytes predicates;
         bytes preInteraction;
         bytes postInteraction;
-        bytes signature;
     }
 }
