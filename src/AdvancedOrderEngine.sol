@@ -25,6 +25,7 @@ contract AdvancedOrderEngine is EIP712 {
     function fillOrders(
         OrderEngine.Order[] calldata orders,
         uint256[] calldata clearingPrices,
+        bytes[] calldata signatures,
         bytes calldata facilitatorInteractionCalldata,
         address facilitatorInteractionTargetContract
     ) external {
@@ -55,6 +56,7 @@ contract AdvancedOrderEngine is EIP712 {
 
         for (uint256 i; i < orders.length; ) {
             OrderEngine.Order calldata order = orders[i];
+            bytes calldata signature = signatures[i];
 
             bytes32 orderHash = order.hash();
             bytes32 orderMessageHash = _hashTypedDataV4(orderHash);
