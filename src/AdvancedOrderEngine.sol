@@ -5,6 +5,8 @@ import {EIP712, ECDSA} from "openzeppelin/utils/cryptography/EIP712.sol";
 import {IERC1271} from "openzeppelin/interfaces/IERC1271.sol";
 import {OrderEngine} from "./libraries/OrderEngine.sol";
 import {IPreInteractionNotificationReceiver} from "./interfaces/IPreInteractionNotificationReceiver.sol";
+import {IPostInteractionNotificationReceiver} from "./interfaces/IPostInteractionNotificationReceiver.sol";
+
 import {Decoder} from "./libraries/Decoder.sol";
 import "./AdvancedOrderEngineErrors.sol";
 import {Vault} from "./Vault.sol";
@@ -135,8 +137,26 @@ contract AdvancedOrderEngine is Vault, EIP712 {
 
             OrderEngine.Order calldata order = orders[i];
 
+            bytes32 orderHash = order.hash();
+            bytes32 orderMessageHash = _hashTypedDataV4(orderHash);
+
             // TODO: reorder params type
             _sendAsset(order.buyToken, order.buyTokenAmount, order.maker);
+
+            if (order.postInteraction.length >= 20) {
+                // proceed only if interaction length is enough to store address
+                (
+                    address interactionTarget,
+                    bytes calldata interactionData
+                ) = order.postInteraction.decodeTargetAndCalldata();
+                IPostInteractionNotificationReceiver(interactionTarget)
+                    .fillOrderPostInteraction(
+                        orderMessageHash,
+                        order.maker,
+                        clearingPrices[i],
+                        interactionData
+                    );
+            }
 
             unchecked {
                 ++i;
