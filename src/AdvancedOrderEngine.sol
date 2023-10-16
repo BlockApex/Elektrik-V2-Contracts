@@ -114,7 +114,7 @@ contract AdvancedOrderEngine is Vault, EIP712 {
                 ) = order.preInteraction.decodeTargetAndCalldata();
                 IPreInteractionNotificationReceiver(interactionTarget)
                     .fillOrderPreInteraction(
-                        orderHash,
+                        orderMessageHash,
                         order.maker,
                         offeredAmounts[i],
                         interactionData
