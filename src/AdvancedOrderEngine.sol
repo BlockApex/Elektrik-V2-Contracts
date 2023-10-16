@@ -15,6 +15,11 @@ import {Vault} from "./Vault.sol";
 import {Ownable2Step} from "openzeppelin/access/Ownable2Step.sol";
 
 contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
+    // TBD: consider making extraData a separate param
+    // TBD: consider making interfaces generic
+    // TBD: consider changing data type to IERC20 of buy and sell token
+    // TBD: consider allowing facilitator to tell offeredAmounts in its interaction
+
     using OrderEngine for OrderEngine.Order;
     using Decoder for bytes;
 
