@@ -15,6 +15,13 @@ contract AdvancedOrderEngine is Vault, EIP712 {
     using OrderEngine for OrderEngine.Order;
     using Decoder for bytes;
 
+    event OrderFill(
+        address operator,
+        address maker,
+        bytes32 orderHash,
+        uint256 offeredAmount
+    );
+
     constructor(
         string memory name,
         string memory version
@@ -164,10 +171,18 @@ contract AdvancedOrderEngine is Vault, EIP712 {
                     );
             }
 
+            // TODO: decide where to emit event, as its considered as an effect so maybe do it somewhere in the start; what params to log;
+            // events spam? ; consider emitting just one event
+            emit OrderFill(
+                msg.sender,
+                order.maker,
+                orderMessageHash,
+                offeredAmounts[i]
+            );
+
             unchecked {
                 ++i;
             }
         }
-        // STUB: EMIT EVENT (decide where to emit event, as its considered as an effect so maybe do it somewhere in the start) //
     }
 }
