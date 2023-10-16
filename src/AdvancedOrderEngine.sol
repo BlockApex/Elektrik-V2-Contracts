@@ -17,9 +17,7 @@ contract AdvancedOrderEngine is Vault, EIP712 {
     using OrderEngine for OrderEngine.Order;
     using Decoder for bytes;
 
-    // @notice Stores unfilled amounts for each order.
-    // TBD: public or private?
-    mapping(bytes32 => uint256) public remainingFillableAmount;
+    mapping(address => bool) public isOperator;
 
     event OrderFill(
         address operator,
@@ -32,6 +30,13 @@ contract AdvancedOrderEngine is Vault, EIP712 {
         string memory name,
         string memory version
     ) EIP712(name, version) {}
+
+    modifier onlyOperator() {
+        if (!isOperator[msg.sender]) {
+            revert NotAnOperator(msg.sender);
+        }
+        _;
+    }
 
     /**
      * @notice Fills multiple orders by processing the specified orders and clearing prices.
