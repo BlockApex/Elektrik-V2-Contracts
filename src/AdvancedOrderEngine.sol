@@ -12,8 +12,9 @@ import {IInteractionNotificationReceiver} from "./interfaces/IInteractionNotific
 import {Decoder} from "./libraries/Decoder.sol";
 import "./AdvancedOrderEngineErrors.sol";
 import {Vault} from "./Vault.sol";
+import {Ownable2Step} from "openzeppelin/access/Ownable2Step.sol";
 
-contract AdvancedOrderEngine is Vault, EIP712 {
+contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
     using OrderEngine for OrderEngine.Order;
     using Decoder for bytes;
 
@@ -25,6 +26,7 @@ contract AdvancedOrderEngine is Vault, EIP712 {
         bytes32 orderHash,
         uint256 offeredAmount
     );
+    event OperatorAccessModified(address indexed authorized, bool access);
 
     constructor(
         string memory name,
@@ -36,6 +38,21 @@ contract AdvancedOrderEngine is Vault, EIP712 {
             revert NotAnOperator(msg.sender);
         }
         _;
+    }
+
+    function manageOperatorPrivilege(
+        address _address,
+        bool _access
+    ) external onlyOwner {
+        if (_address == address(0)) {
+            revert ZeroAddress();
+        }
+
+        // TBD: should we not allow if owner is trying to set same access? (con: additional gas)
+        // Overwrites the access previously granted.
+        isOperator[_address] = _access;
+
+        emit OperatorAccessModified(_address, _access);
     }
 
     /**
@@ -50,7 +67,7 @@ contract AdvancedOrderEngine is Vault, EIP712 {
         uint256[] calldata offeredAmounts,
         bytes[] calldata signatures,
         bytes calldata facilitatorInteraction
-    ) external {
+    ) external onlyOperator {
         // STUB: ONLY OPERATOR //
 
         // TBD: max array length check needed? Considering fn will be restricted to operators only
