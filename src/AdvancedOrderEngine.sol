@@ -128,10 +128,22 @@ contract AdvancedOrderEngine is Vault, EIP712 {
         }
 
         // STUB: CALL FACILITATOR INTERACTION //
-        // STUB: START ANOTHER LOOP //
-        // STUB: ENSURE FACILITATOR IS RESPECTING MAKER PRICE //
-        // STUB: TRANSFER FUNDS FROM VAULT TO MAKER //
-        // STUB: CALL POST-INTERACTION HOOK //
+
+        // TODO: Need optimization
+        for (uint256 i; i < orders.length; ) {
+            // STUB: ENSURE FACILITATOR IS RESPECTING MAKER PRICE //
+
+            OrderEngine.Order calldata order = orders[i];
+
+            // TODO: reorder params type
+            _sendAsset(order.buyToken, order.buyTokenAmount, order.maker);
+
+            // STUB: CALL POST-INTERACTION HOOK //
+
+            unchecked {
+                ++i;
+            }
+        }
         // STUB: EMIT EVENT (decide where to emit event, as its considered as an effect so maybe do it somewhere in the start) //
     }
 }
