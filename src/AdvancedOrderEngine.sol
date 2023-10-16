@@ -33,14 +33,12 @@ contract AdvancedOrderEngine is Vault, EIP712 {
      * @param orders An array of order structs representing the orders to be filled.
      * @param offeredAmounts An array of clearing prices that the facilitator is offering to the makers.
      * @param facilitatorInteractionCalldata The calldata for the facilitator's interaction.
-     * @param facilitatorInteractionTargetContract The address of the facilitator's target contract.
      */
     function fillOrders(
         OrderEngine.Order[] calldata orders,
         uint256[] calldata offeredAmounts,
         bytes[] calldata signatures,
-        bytes calldata facilitatorInteractionCalldata,
-        address facilitatorInteractionTargetContract
+        bytes calldata facilitatorInteractionCalldata
     ) external {
         // STUB: ONLY OPERATOR //
 
@@ -59,14 +57,6 @@ contract AdvancedOrderEngine is Vault, EIP712 {
         // Revert if the length of the orders array does not match the clearing prices array.
         if (orders.length != offeredAmounts.length) {
             revert ArraysLengthMismatch(orders.length, offeredAmounts.length);
-        }
-
-        // Revert if the facilitator has provided calldata for its interaction but has provided null target contract address.
-        if (
-            facilitatorInteractionCalldata.length != 0 &&
-            facilitatorInteractionTargetContract == address(0)
-        ) {
-            revert ZeroFacilitatorTargetAddress(); // TBD: use generic error message i.e. ZeroAddress()
         }
 
         for (uint256 i; i < orders.length; ) {
