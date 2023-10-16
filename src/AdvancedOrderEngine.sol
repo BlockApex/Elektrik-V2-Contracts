@@ -32,13 +32,13 @@ contract AdvancedOrderEngine is Vault, EIP712 {
      *
      * @param orders An array of order structs representing the orders to be filled.
      * @param offeredAmounts An array of clearing prices that the facilitator is offering to the makers.
-     * @param facilitatorInteractionCalldata The calldata for the facilitator's interaction.
+     * @param facilitatorInteraction The calldata for the facilitator's interaction.
      */
     function fillOrders(
         OrderEngine.Order[] calldata orders,
         uint256[] calldata offeredAmounts,
         bytes[] calldata signatures,
-        bytes calldata facilitatorInteractionCalldata
+        bytes calldata facilitatorInteraction
     ) external {
         // STUB: ONLY OPERATOR //
 
