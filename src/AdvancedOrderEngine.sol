@@ -17,6 +17,10 @@ contract AdvancedOrderEngine is Vault, EIP712 {
     using OrderEngine for OrderEngine.Order;
     using Decoder for bytes;
 
+    // @notice Stores unfilled amounts for each order.
+    // TBD: public or private?
+    mapping(bytes32 => uint256) public remainingFillableAmount;
+
     event OrderFill(
         address operator,
         address maker,
@@ -150,7 +154,6 @@ contract AdvancedOrderEngine is Vault, EIP712 {
             bytes32 orderHash = order.hash();
             bytes32 orderMessageHash = _hashTypedDataV4(orderHash);
 
-            // STUB: ENSURE FACILITATOR IS RESPECTING MAKER PRICE //
             if (order.buyTokenAmount > offeredAmounts[i]) {
                 revert LimitPriceNotRespected(
                     order.buyTokenAmount,
