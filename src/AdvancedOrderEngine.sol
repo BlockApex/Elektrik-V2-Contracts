@@ -6,7 +6,6 @@ import {IERC1271} from "openzeppelin/interfaces/IERC1271.sol";
 import {OrderEngine} from "./libraries/OrderEngine.sol";
 import {IPreInteractionNotificationReceiver} from "./interfaces/IPreInteractionNotificationReceiver.sol";
 import {Decoder} from "./libraries/Decoder.sol";
-
 import "./AdvancedOrderEngineErrors.sol";
 
 contract AdvancedOrderEngine is EIP712 {
