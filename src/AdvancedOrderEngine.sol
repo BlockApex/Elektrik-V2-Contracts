@@ -147,7 +147,7 @@ contract AdvancedOrderEngine is Vault, EIP712 {
             }
 
             // TODO: reorder params type
-            _sendAsset(order.buyToken, order.buyTokenAmount, order.maker);
+            _sendAsset(order.buyToken, clearingPrices[i], order.maker);
 
             if (order.postInteraction.length >= 20) {
                 // proceed only if interaction length is enough to store address
