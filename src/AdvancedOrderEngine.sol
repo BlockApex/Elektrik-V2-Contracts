@@ -138,8 +138,6 @@ contract AdvancedOrderEngine is Vault, EIP712 {
             // TODO: reorder params type
             _sendAsset(order.buyToken, order.buyTokenAmount, order.maker);
 
-            // STUB: CALL POST-INTERACTION HOOK //
-
             unchecked {
                 ++i;
             }
