@@ -24,13 +24,13 @@ contract AdvancedOrderEngine is Vault, EIP712 {
      * @notice Fills multiple orders by processing the specified orders and clearing prices.
      *
      * @param orders An array of order structs representing the orders to be filled.
-     * @param clearingPrices An array of clearing prices that the facilitator is offering to the makers.
+     * @param offeredAmounts An array of clearing prices that the facilitator is offering to the makers.
      * @param facilitatorInteractionCalldata The calldata for the facilitator's interaction.
      * @param facilitatorInteractionTargetContract The address of the facilitator's target contract.
      */
     function fillOrders(
         OrderEngine.Order[] calldata orders,
-        uint256[] calldata clearingPrices,
+        uint256[] calldata offeredAmounts,
         bytes[] calldata signatures,
         bytes calldata facilitatorInteractionCalldata,
         address facilitatorInteractionTargetContract
@@ -40,8 +40,8 @@ contract AdvancedOrderEngine is Vault, EIP712 {
         // TBD: max array length check needed? Considering fn will be restricted to operators only
 
         /** 
-            TBD: no need to check for clearingPrices length to be equal to 0 as if that's the case, txn will revert in subsequent check
-            but should we check for clearingPrices length to be equal to zero explicitly for better error reporting? 
+            TBD: no need to check for offeredAmounts length to be equal to 0 as if that's the case, txn will revert in subsequent check
+            but should we check for offeredAmounts length to be equal to zero explicitly for better error reporting? 
             Also consider generic error message
         */
         // Revert if the orders array length is zero.
@@ -50,8 +50,8 @@ contract AdvancedOrderEngine is Vault, EIP712 {
         }
 
         // Revert if the length of the orders array does not match the clearing prices array.
-        if (orders.length != clearingPrices.length) {
-            revert ArraysLengthMismatch(orders.length, clearingPrices.length);
+        if (orders.length != offeredAmounts.length) {
+            revert ArraysLengthMismatch(orders.length, offeredAmounts.length);
         }
 
         // Revert if the facilitator has provided calldata for its interaction but has provided null target contract address.
@@ -116,7 +116,7 @@ contract AdvancedOrderEngine is Vault, EIP712 {
                     .fillOrderPreInteraction(
                         orderHash,
                         order.maker,
-                        clearingPrices[i],
+                        offeredAmounts[i],
                         interactionData
                     );
             }
@@ -139,15 +139,15 @@ contract AdvancedOrderEngine is Vault, EIP712 {
             bytes32 orderMessageHash = _hashTypedDataV4(orderHash);
 
             // STUB: ENSURE FACILITATOR IS RESPECTING MAKER PRICE //
-            if (order.buyTokenAmount > clearingPrices[i]) {
+            if (order.buyTokenAmount > offeredAmounts[i]) {
                 revert LimitPriceNotRespected(
                     order.buyTokenAmount,
-                    clearingPrices[i]
+                    offeredAmounts[i]
                 );
             }
 
             // TODO: reorder params type
-            _sendAsset(order.buyToken, clearingPrices[i], order.maker);
+            _sendAsset(order.buyToken, offeredAmounts[i], order.maker);
 
             if (order.postInteraction.length >= 20) {
                 // proceed only if interaction length is enough to store address
@@ -159,7 +159,7 @@ contract AdvancedOrderEngine is Vault, EIP712 {
                     .fillOrderPostInteraction(
                         orderMessageHash,
                         order.maker,
-                        clearingPrices[i],
+                        offeredAmounts[i],
                         interactionData
                     );
             }
