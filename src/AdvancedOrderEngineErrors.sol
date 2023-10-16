@@ -9,3 +9,4 @@ error ZeroTokenAmounts();
 error ZeroAddress();
 error BadSignature();
 error IncorrectDataLength();
+error LimitPriceNotRespected(uint256 desiredAmount, uint256 offeredAmount);

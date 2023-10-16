@@ -133,12 +133,18 @@ contract AdvancedOrderEngine is Vault, EIP712 {
 
         // TODO: Need optimization
         for (uint256 i; i < orders.length; ) {
-            // STUB: ENSURE FACILITATOR IS RESPECTING MAKER PRICE //
-
             OrderEngine.Order calldata order = orders[i];
 
             bytes32 orderHash = order.hash();
             bytes32 orderMessageHash = _hashTypedDataV4(orderHash);
+
+            // STUB: ENSURE FACILITATOR IS RESPECTING MAKER PRICE //
+            if (order.buyTokenAmount > clearingPrices[i]) {
+                revert LimitPriceNotRespected(
+                    order.buyTokenAmount,
+                    clearingPrices[i]
+                );
+            }
 
             // TODO: reorder params type
             _sendAsset(order.buyToken, order.buyTokenAmount, order.maker);
