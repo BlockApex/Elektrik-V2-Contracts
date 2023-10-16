@@ -7,6 +7,8 @@ import {OrderEngine} from "./libraries/OrderEngine.sol";
 import {IPreInteractionNotificationReceiver} from "./interfaces/IPreInteractionNotificationReceiver.sol";
 import {IPostInteractionNotificationReceiver} from "./interfaces/IPostInteractionNotificationReceiver.sol";
 
+import {IInteractionNotificationReceiver} from "./interfaces/IInteractionNotificationReceiver.sol";
+
 import {Decoder} from "./libraries/Decoder.sol";
 import "./AdvancedOrderEngineErrors.sol";
 import {Vault} from "./Vault.sol";
@@ -126,7 +128,20 @@ contract AdvancedOrderEngine is Vault, EIP712 {
             }
         }
 
-        // STUB: CALL FACILITATOR INTERACTION //
+        if (facilitatorInteraction.length >= 20) {
+            // proceed only if interaction length is enough to store address
+            (
+                address interactionTarget,
+                bytes calldata interactionData
+            ) = facilitatorInteraction.decodeTargetAndCalldata();
+            IInteractionNotificationReceiver(interactionTarget)
+                .fillOrderInteraction(
+                    msg.sender,
+                    orders,
+                    offeredAmounts,
+                    interactionData
+                );
+        }
 
         // TODO: Need optimization
         for (uint256 i; i < orders.length; ) {
