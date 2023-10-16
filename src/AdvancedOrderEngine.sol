@@ -7,8 +7,9 @@ import {OrderEngine} from "./libraries/OrderEngine.sol";
 import {IPreInteractionNotificationReceiver} from "./interfaces/IPreInteractionNotificationReceiver.sol";
 import {Decoder} from "./libraries/Decoder.sol";
 import "./AdvancedOrderEngineErrors.sol";
+import {Vault} from "./Vault.sol";
 
-contract AdvancedOrderEngine is EIP712 {
+contract AdvancedOrderEngine is Vault, EIP712 {
     using OrderEngine for OrderEngine.Order;
     using Decoder for bytes;
 
@@ -118,7 +119,8 @@ contract AdvancedOrderEngine is EIP712 {
                     );
             }
 
-            // STUB: TRANSER FUNDS FROM MAKER TO VAULT //
+            // TODO: reorder params type
+            _receiveAsset(order.sellToken, order.sellTokenAmount, order.maker);
 
             unchecked {
                 ++i;
