@@ -9,9 +9,9 @@ import {OrderEngine} from "../libraries/OrderEngine.sol";
  */
 interface IInteractionNotificationReceiver {
     /**
-     * @notice Callback method that gets called after funds transfer from the 'maker' to the 'vault
+     * @notice Callback method that gets called after funds transfer from the 'maker' to the 'vault'.
      * @param operator Address of the caller who executed orders on behalf of the facilitator.
-     * @param orders Address of the oorder maker
+     * @param orders Orders the facilitator is willing to fill.
      * @param offeredAmounts Amounts of the asset the facilitator is offering to the makers.
      * @param interactionData Interaction calldata
      */
