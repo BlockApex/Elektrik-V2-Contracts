@@ -12,7 +12,7 @@ library OrderEngine {
         uint256 feeAmounts;
         address maker;
         address taker; // null on public orders
-        address recipient; // TODO: maybe use null to represent msg.sender?
+        address recipient; // TBD: use null to represent maker? Right now expecting explicit address set
         address sellToken;
         address buyToken;
         bool isPartiallyFillable;

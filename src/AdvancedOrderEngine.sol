@@ -68,7 +68,7 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
         bytes[] calldata signatures,
         bytes calldata facilitatorInteraction
     ) external onlyOperator {
-        // STUB: ONLY OPERATOR //
+        // TBD: Private orders?
 
         // TBD: max array length check needed? Considering fn will be restricted to operators only
 
@@ -105,7 +105,8 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
             if (
                 order.maker == address(0) ||
                 order.buyToken == address(0) ||
-                order.sellToken == address(0)
+                order.sellToken == address(0) ||
+                order.recipient == address(0)
             ) {
                 revert ZeroAddress();
             }
@@ -184,7 +185,7 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
             }
 
             // TODO: reorder params type
-            _sendAsset(order.buyToken, offeredAmounts[i], order.maker);
+            _sendAsset(order.buyToken, offeredAmounts[i], order.recipient);
 
             if (order.postInteraction.length >= 20) {
                 // proceed only if interaction length is enough to store address
