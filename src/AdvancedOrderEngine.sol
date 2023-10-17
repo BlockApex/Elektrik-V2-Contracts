@@ -167,7 +167,11 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
                 bytes calldata interactionData
             ) = facilitatorInteraction.decodeTargetAndCalldata();
 
-            // Facilitator is expected to provide us with the token addresses and their corresponding amounts that they require from the vault.            // TBD: consider using these returned values for some kinda balances assertion
+            // Facilitator is expected to provide us with the token addresses and their corresponding amounts that they require from the vault.
+            // TBD: consider using these returned values for some kinda balances assertion
+            // TBD: is it alright to assume facilitator will ensure that duplicates addresses are not present in 'tokenAddresses' array?
+            // considering gas fee will not be paid by the facilitator, so there's no benefit for facilitator to ensure this
+            // TBD: transfer funds to 'interactionTarget' or no harm in expecting recipient address?
             (
                 address[] memory tokenAddresses,
                 uint256[] memory tokenAmounts,
@@ -185,6 +189,14 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
 
             if (assetsRecipient == address(0)) {
                 revert ZeroAddress();
+            }
+
+            // Transferring funds to the address provided by the facilitator
+            for (uint256 i; i < tokenAddresses.length; ) {
+                _sendAsset(tokenAddresses[i], tokenAmounts[i], assetsRecipient);
+                unchecked {
+                    ++i;
+                }
             }
 
             IInteractionNotificationReceiver(interactionTarget)
