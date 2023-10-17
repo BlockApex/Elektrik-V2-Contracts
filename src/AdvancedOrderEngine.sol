@@ -166,6 +166,20 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
                 address interactionTarget,
                 bytes calldata interactionData
             ) = facilitatorInteraction.decodeTargetAndCalldata();
+
+            // Facilitator is supposed to tell us token addresses and its corresponding amounts that he wants from vault
+            // TBD: consider using these returned values for some kinda balances assertion
+            (
+                address[] memory tokenAddresses,
+                uint256[] memory tokenAmounts,
+                address assetsRecipient
+            ) = IInteractionNotificationReceiver(interactionTarget)
+                    .getFacilitatorTokenTransferDetails(
+                        msg.sender,
+                        orders,
+                        offeredAmounts
+                    );
+
             IInteractionNotificationReceiver(interactionTarget)
                 .fillOrderInteraction(
                     msg.sender,
