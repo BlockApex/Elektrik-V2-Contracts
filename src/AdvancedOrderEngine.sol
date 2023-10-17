@@ -89,7 +89,7 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
 
         // Revert if the length of the orders array does not match the clearing prices array.
         if (orders.length != offeredAmounts.length) {
-            revert ArraysLengthMismatch(orders.length, offeredAmounts.length);
+            revert ArraysLengthMismatch();
         }
 
         for (uint256 i; i < orders.length; ) {
@@ -178,6 +178,14 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
                         orders,
                         offeredAmounts
                     );
+
+            if (tokenAddresses.length != tokenAmounts.length) {
+                revert ArraysLengthMismatch();
+            }
+
+            if (assetsRecipient == address(0)) {
+                revert ZeroAddress();
+            }
 
             IInteractionNotificationReceiver(interactionTarget)
                 .fillOrderInteraction(
