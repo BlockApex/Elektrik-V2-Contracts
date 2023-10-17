@@ -21,4 +21,10 @@ interface IInteractionNotificationReceiver {
         uint256[] calldata offeredAmounts,
         bytes memory interactionData
     ) external;
+
+    function getTokenAddressesAndAmounts(
+        address operator,
+        OrderEngine.Order[] calldata orders,
+        uint256[] calldata offeredAmounts
+    ) external pure returns (address[] memory, uint256[] memory, address); // TBD: pure cause assuming facilitator will extract tokens and amounts to withdraw from vault from fn params/ calldata
 }
