@@ -167,8 +167,7 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
                 bytes calldata interactionData
             ) = facilitatorInteraction.decodeTargetAndCalldata();
 
-            // Facilitator is supposed to tell us token addresses and its corresponding amounts that he wants from vault
-            // TBD: consider using these returned values for some kinda balances assertion
+            // Facilitator is expected to provide us with the token addresses and their corresponding amounts that they require from the vault.            // TBD: consider using these returned values for some kinda balances assertion
             (
                 address[] memory tokenAddresses,
                 uint256[] memory tokenAmounts,
