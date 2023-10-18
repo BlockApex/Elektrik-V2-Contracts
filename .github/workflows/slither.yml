@@ -2,7 +2,7 @@ name: Slither Analysiss
 on:
   push:
     branches:
-      - 'feat/operator-restrictions'  # This wildcard ensures that all branches are in scope
+      [feat/operator-restrictions] 
 jobs:
   analyze:
     runs-on: ubuntu-latest
