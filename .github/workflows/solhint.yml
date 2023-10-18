@@ -3,7 +3,7 @@ name: Solhint Linter
 on:
   push:
     branches:
-      - '**'  # This wildcard ensures that all branches are in scope
+      [feat/operator-restrictions] # This wildcard ensures that all branches are in scope
 
 jobs:
   lint:
