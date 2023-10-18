@@ -2,6 +2,10 @@
 
 The `AdvancedOrderEngine` contract is a core contract of the Elektrik Limit Order Protocol, responsible for executing multiple orders within a single transaction.
 
+## Flow chart diagram
+
+[View Flow Chart Diagram](https://miro.com/app/board/uXjVMi9rdBk=/?moveToWidget=3458764566051732586&cot=14)
+
 ## Modifiers
 
 ### `onlyOperators`
