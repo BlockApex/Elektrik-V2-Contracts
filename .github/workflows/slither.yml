@@ -1,0 +1,12 @@
+name: Slither Analysiss
+on:
+  push:
+    branches:
+      - 'feat/operator-restrictions'
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: crytic/slither-action@v0.3.0
+  
