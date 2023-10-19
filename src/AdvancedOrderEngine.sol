@@ -89,7 +89,7 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
 
         // Revert if the length of the orders array does not match the clearing prices array.
         if (orders.length != offeredAmounts.length) {
-            revert ArraysLengthMismatch(orders.length, offeredAmounts.length);
+            revert ArraysLengthMismatch();
         }
 
         for (uint256 i; i < orders.length; ) {
@@ -166,6 +166,39 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
                 address interactionTarget,
                 bytes calldata interactionData
             ) = facilitatorInteraction.decodeTargetAndCalldata();
+
+            // Facilitator is expected to provide us with the token addresses and their corresponding amounts that they require from the vault.
+            // TBD: consider using these returned values for some kinda balances assertion
+            // TBD: is it alright to assume facilitator will ensure that duplicates addresses are not present in 'tokenAddresses' array?
+            // considering gas fee will not be paid by the facilitator, so there's no benefit for facilitator to ensure this
+            // TBD: transfer funds to 'interactionTarget' or no harm in expecting recipient address?
+            (
+                address[] memory tokenAddresses,
+                uint256[] memory tokenAmounts,
+                address assetsRecipient
+            ) = IInteractionNotificationReceiver(interactionTarget)
+                    .getFacilitatorTokenTransferDetails(
+                        msg.sender,
+                        orders,
+                        offeredAmounts
+                    );
+
+            if (tokenAddresses.length != tokenAmounts.length) {
+                revert ArraysLengthMismatch();
+            }
+
+            if (assetsRecipient == address(0)) {
+                revert ZeroAddress();
+            }
+
+            // Transferring funds to the address provided by the facilitator
+            for (uint256 i; i < tokenAddresses.length; ) {
+                _sendAsset(tokenAddresses[i], tokenAmounts[i], assetsRecipient);
+                unchecked {
+                    ++i;
+                }
+            }
+
             IInteractionNotificationReceiver(interactionTarget)
                 .fillOrderInteraction(
                     msg.sender,
