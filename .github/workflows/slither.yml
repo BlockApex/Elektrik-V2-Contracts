@@ -1,4 +1,4 @@
-name: Slither Analysis
+name: Slither Analysis & Workflow Modification
 
 on:
   push:
@@ -6,21 +6,34 @@ on:
       - 'feat/operator-restrictions'
 
 jobs:
-  analyze:
+  analyze-and-modify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        
+      - name: Run Slither and save output
+        run: |
+          slither . --json slither-result.json
 
-      - name: Run Slither
-        uses: crytic/slither-action@v0.3.0
-        with:
-          args: --json > slither-result.json
-
-      - name: Commit and push Slither results
+      # --- MODIFY WORKFLOWS ---
+      - name: Check and modify deprecated GitHub actions
+        run: |
+          workflowList=$(ls ./.github/workflows/*)
+          for workflow in $workflowList
+          do
+            if grep -q -e ::save-state -e ::set-output $workflow; then
+              sed -i 's|"::set-output name=\([^"]*\)::\([^"]*\)"|"\1=\2" >> $GITHUB_OUTPUT|g' $workflow
+              sed -i 's|"::save-state name=\([^"]*\)::\([^"]*\)"|"\1=\2" >> $GITHUB_STATE|g' $workflow
+            fi
+          done
+      
+      # --- COMMIT CHANGES ---
+      - name: Commit changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add slither-result.json
-          git commit -m "Add Slither analysis results" -a || echo "No changes to commit"
+          
+          git add .
+          git commit -m "Update Slither results and modify workflows" || echo "No changes to commit"
           git push
