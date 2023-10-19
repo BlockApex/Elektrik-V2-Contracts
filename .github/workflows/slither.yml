@@ -1,39 +1,11 @@
-name: Slither Analysis & Workflow Modification
-
+name: Slither Analysiss
 on:
   push:
     branches:
       - 'feat/operator-restrictions'
-
 jobs:
-  analyze-and-modify:
+  analyze:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        
-      - name: Run Slither and save output
-        run: |
-          slither . --json slither-result.json
-
-      # --- MODIFY WORKFLOWS ---
-      - name: Check and modify deprecated GitHub actions
-        run: |
-          workflowList=$(ls ./.github/workflows/*)
-          for workflow in $workflowList
-          do
-            if grep -q -e ::save-state -e ::set-output $workflow; then
-              sed -i 's|"::set-output name=\([^"]*\)::\([^"]*\)"|"\1=\2" >> $GITHUB_OUTPUT|g' $workflow
-              sed -i 's|"::save-state name=\([^"]*\)::\([^"]*\)"|"\1=\2" >> $GITHUB_STATE|g' $workflow
-            fi
-          done
-      
-      # --- COMMIT CHANGES ---
-      - name: Commit changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          
-          git add .
-          git commit -m "Update Slither results and modify workflows" || echo "No changes to commit"
-          git push
+      - uses: actions/checkout@v3
+      - uses: crytic/slither-action@v0.3.0
