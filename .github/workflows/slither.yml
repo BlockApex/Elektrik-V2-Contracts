@@ -1,13 +1,26 @@
-name: Slither Analysiss
+name: Slither Analysis
+
 on:
   push:
     branches:
       - 'feat/operator-restrictions'
+
 jobs:
   analyze:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: crytic/slither-action@v0.3.0
-   
-  
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run Slither
+        uses: crytic/slither-action@v0.3.0
+        with:
+          args: --json > slither-result.json
+
+      - name: Commit and push Slither results
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add slither-result.json
+          git commit -m "Add Slither analysis results" -a || echo "No changes to commit"
+          git push
