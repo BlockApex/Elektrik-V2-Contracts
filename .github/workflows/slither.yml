@@ -2,7 +2,7 @@ name: Slither Analysiss
 on:
   push:
     branches:
-      [Main] 
+      [development] 
 jobs:
   analyze:
     runs-on: ubuntu-latest
