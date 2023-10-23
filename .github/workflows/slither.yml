@@ -2,7 +2,9 @@ name: Slither Analysiss
 on:
   push:
     branches:
-      - 'feat/operator-restrictions'
+      - '*'         # matches every branch that doesn't contain a '/'
+      - '*/*'       # matches every branch containing a single '/'
+      - '**' 
 jobs:
   analyze:
     runs-on: ubuntu-latest
