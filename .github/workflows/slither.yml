@@ -1,10 +1,5 @@
 name: Slither Analysiss
-on:
-  push:
-    branches:
-      - '*'         # matches every branch that doesn't contain a '/'
-      - '*/*'       # matches every branch containing a single '/'
-      - '**' 
+on: [push, pull_request]
 jobs:
   analyze:
     runs-on: ubuntu-latest
