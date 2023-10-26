@@ -1,1 +1,512 @@
+Summary
+ - [arbitrary-send-erc20](#arbitrary-send-erc20) (1 results) (High)
+ - [incorrect-exp](#incorrect-exp) (1 results) (High)
+ - [divide-before-multiply](#divide-before-multiply) (8 results) (Medium)
+ - [write-after-write](#write-after-write) (1 results) (Medium)
+ - [missing-zero-check](#missing-zero-check) (1 results) (Low)
+ - [calls-loop](#calls-loop) (4 results) (Low)
+ - [reentrancy-events](#reentrancy-events) (1 results) (Low)
+ - [timestamp](#timestamp) (1 results) (Low)
+ - [assembly](#assembly) (5 results) (Informational)
+ - [pragma](#pragma) (1 results) (Informational)
+ - [cyclomatic-complexity](#cyclomatic-complexity) (1 results) (Informational)
+ - [solc-version](#solc-version) (22 results) (Informational)
+ - [low-level-calls](#low-level-calls) (4 results) (Informational)
+ - [naming-convention](#naming-convention) (9 results) (Informational)
+ - [similar-names](#similar-names) (2 results) (Informational)
+## arbitrary-send-erc20
+Impact: High
+Confidence: High
+ - [ ] ID-0
+[Vault._receiveAsset(address,uint256,address)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/Vault.sol#L10-L18) uses arbitrary from in transferFrom: [token.safeTransferFrom(maker,address(this),amount)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/Vault.sol#L17)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/Vault.sol#L10-L18
+
+
+## incorrect-exp
+Impact: High
+Confidence: Medium
+ - [ ] ID-1
+[Math.mulDiv(uint256,uint256,uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131) has bitwise-xor operator ^ instead of the exponentiation operator **: 
+	 - [inverse = (3 * denominator) ^ 2](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L113)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131
+
+
+## divide-before-multiply
+Impact: Medium
+Confidence: Medium
+ - [ ] ID-2
+[Math.mulDiv(uint256,uint256,uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131) performs a multiplication on the result of a division:
+	- [denominator = denominator / twos](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L98)
+	- [inverse *= 2 - denominator * inverse](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L120)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131
+
+
+ - [ ] ID-3
+[Math.mulDiv(uint256,uint256,uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131) performs a multiplication on the result of a division:
+	- [denominator = denominator / twos](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L98)
+	- [inverse *= 2 - denominator * inverse](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L122)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131
+
+
+ - [ ] ID-4
+[Math.mulDiv(uint256,uint256,uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131) performs a multiplication on the result of a division:
+	- [denominator = denominator / twos](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L98)
+	- [inverse *= 2 - denominator * inverse](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L119)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131
+
+
+ - [ ] ID-5
+[Math.mulDiv(uint256,uint256,uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131) performs a multiplication on the result of a division:
+	- [denominator = denominator / twos](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L98)
+	- [inverse *= 2 - denominator * inverse](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L117)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131
+
+
+ - [ ] ID-6
+[Math.mulDiv(uint256,uint256,uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131) performs a multiplication on the result of a division:
+	- [denominator = denominator / twos](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L98)
+	- [inverse = (3 * denominator) ^ 2](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L113)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131
+
+
+ - [ ] ID-7
+[Math.mulDiv(uint256,uint256,uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131) performs a multiplication on the result of a division:
+	- [denominator = denominator / twos](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L98)
+	- [inverse *= 2 - denominator * inverse](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L121)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131
+
+
+ - [ ] ID-8
+[Math.mulDiv(uint256,uint256,uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131) performs a multiplication on the result of a division:
+	- [denominator = denominator / twos](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L98)
+	- [inverse *= 2 - denominator * inverse](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L118)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131
+
+
+ - [ ] ID-9
+[Math.mulDiv(uint256,uint256,uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131) performs a multiplication on the result of a division:
+	- [prod0 = prod0 / twos](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L101)
+	- [result = prod0 * inverse](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L128)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131
+
+
+## write-after-write
+Impact: Medium
+Confidence: High
+ - [ ] ID-10
+[Decoder.decodeTargetAndCalldata(bytes).args](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/Decoder.sol#L9) is written in both
+	[args = data + 20](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/Decoder.sol#L15)
+	[args = data - 20](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/Decoder.sol#L16)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/Decoder.sol#L9
+
+
+## missing-zero-check
+Impact: Low
+Confidence: Medium
+ - [ ] ID-11
+[Ownable2Step.transferOwnership(address).newOwner](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol#L35) lacks a zero-check on :
+		- [_pendingOwner = newOwner](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol#L36)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol#L35
+
+
+## calls-loop
+Impact: Low
+Confidence: Medium
+ - [ ] ID-12
+[Address.functionCallWithValue(address,bytes,uint256,string)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L128-L137) has external calls inside a loop: [(success,returndata) = target.call{value: value}(data)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L135)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L128-L137
+
+
+ - [ ] ID-13
+[AdvancedOrderEngine.fillOrders(OrderEngine.Order[],uint256[],bytes[],bytes)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256) has external calls inside a loop: [IPostInteractionNotificationReceiver(interactionTarget_scope_7).fillOrderPostInteraction(orderMessageHash_scope_6,order_scope_4.maker,offeredAmounts[i_scope_3],interactionData_scope_8)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L234-L240)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256
+
+
+ - [ ] ID-14
+[AdvancedOrderEngine.fillOrders(OrderEngine.Order[],uint256[],bytes[],bytes)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256) has external calls inside a loop: [! (IERC1271(order.maker).isValidSignature(orderMessageHash,signature) == IERC1271.isValidSignature.selector)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L124-L127)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256
+
+
+ - [ ] ID-15
+[AdvancedOrderEngine.fillOrders(OrderEngine.Order[],uint256[],bytes[],bytes)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256) has external calls inside a loop: [IPreInteractionNotificationReceiver(interactionTarget).fillOrderPreInteraction(orderMessageHash,order.maker,offeredAmounts[i],interactionData)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L146-L152)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256
+
+
+## reentrancy-events
+Impact: Low
+Confidence: Medium
+ - [ ] ID-16
+Reentrancy in [AdvancedOrderEngine.fillOrders(OrderEngine.Order[],uint256[],bytes[],bytes)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256):
+	External calls:
+	- [IPreInteractionNotificationReceiver(interactionTarget).fillOrderPreInteraction(orderMessageHash,order.maker,offeredAmounts[i],interactionData)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L146-L152)
+	- [_receiveAsset(order.sellToken,order.sellTokenAmount,order.maker)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L156)
+		- [returndata = address(token).functionCall(data,SafeERC20: low-level call failed)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#L89)
+		- [token.safeTransferFrom(maker,address(this),amount)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/Vault.sol#L17)
+		- [(success,returndata) = target.call{value: value}(data)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L135)
+	- [_sendAsset(tokenAddresses[i_scope_2],tokenAmounts[i_scope_2],assetsRecipient)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L196)
+		- [returndata = address(token).functionCall(data,SafeERC20: low-level call failed)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#L89)
+		- [token.safeTransfer(maker,amount)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/Vault.sol#L22)
+		- [(success,returndata) = target.call{value: value}(data)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L135)
+	- [IInteractionNotificationReceiver(interactionTarget_scope_0).fillOrderInteraction(msg.sender,orders,offeredAmounts,interactionData_scope_1)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L202-L208)
+	- [_sendAsset(order_scope_4.buyToken,offeredAmounts[i_scope_3],order_scope_4.recipient)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L226)
+		- [returndata = address(token).functionCall(data,SafeERC20: low-level call failed)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#L89)
+		- [token.safeTransfer(maker,amount)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/Vault.sol#L22)
+		- [(success,returndata) = target.call{value: value}(data)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L135)
+	- [IPostInteractionNotificationReceiver(interactionTarget_scope_7).fillOrderPostInteraction(orderMessageHash_scope_6,order_scope_4.maker,offeredAmounts[i_scope_3],interactionData_scope_8)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L234-L240)
+	External calls sending eth:
+	- [_receiveAsset(order.sellToken,order.sellTokenAmount,order.maker)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L156)
+		- [(success,returndata) = target.call{value: value}(data)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L135)
+	- [_sendAsset(tokenAddresses[i_scope_2],tokenAmounts[i_scope_2],assetsRecipient)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L196)
+		- [(success,returndata) = target.call{value: value}(data)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L135)
+	- [_sendAsset(order_scope_4.buyToken,offeredAmounts[i_scope_3],order_scope_4.recipient)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L226)
+		- [(success,returndata) = target.call{value: value}(data)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L135)
+	Event emitted after the call(s):
+	- [OrderFill(msg.sender,order_scope_4.maker,orderMessageHash_scope_6,offeredAmounts[i_scope_3])](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L245-L250)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256
+
+
+## timestamp
+Impact: Low
+Confidence: Medium
+ - [ ] ID-17
+[AdvancedOrderEngine.fillOrders(OrderEngine.Order[],uint256[],bytes[],bytes)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256) uses timestamp for comparisons
+	Dangerous comparisons:
+	- [block.timestamp > order.validTill](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L102)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256
+
+
+## assembly
+Impact: Informational
+Confidence: High
+ - [ ] ID-18
+[Address._revert(bytes,string)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L231-L243) uses assembly
+	- [INLINE ASM](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L236-L239)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L231-L243
+
+
+ - [ ] ID-19
+[Math.mulDiv(uint256,uint256,uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131) uses assembly
+	- [INLINE ASM](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L62-L66)
+	- [INLINE ASM](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L82-L89)
+	- [INLINE ASM](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L96-L105)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L55-L131
+
+
+ - [ ] ID-20
+[ECDSA.tryRecover(bytes32,bytes)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol#L55-L72) uses assembly
+	- [INLINE ASM](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol#L63-L67)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol#L55-L72
+
+
+ - [ ] ID-21
+[Strings.toString(uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Strings.sol#L19-L39) uses assembly
+	- [INLINE ASM](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Strings.sol#L25-L27)
+	- [INLINE ASM](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Strings.sol#L31-L33)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Strings.sol#L19-L39
+
+
+ - [ ] ID-22
+[Decoder.decodeTargetAndCalldata(bytes)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/Decoder.sol#L7-L18) uses assembly
+	- [INLINE ASM](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/Decoder.sol#L12-L17)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/Decoder.sol#L7-L18
+
+
+## pragma
+Impact: Informational
+Confidence: High
+ - [ ] ID-23
+Different versions of Solidity are used:
+	- Version used: ['0.8.21', '^0.8.0', '^0.8.1']
+	- [0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L2)
+	- [0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngineErrors.sol#L2)
+	- [0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/Vault.sol#L2)
+	- [0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/interfaces/IInteractionNotificationReceiver.sol#L3)
+	- [0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/interfaces/IPostInteractionNotificationReceiver.sol#L3)
+	- [0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/interfaces/IPreInteractionNotificationReceiver.sol#L3)
+	- [0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/Decoder.sol#L2)
+	- [0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/OrderEngine.sol#L2)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/access/Ownable.sol#L4)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol#L4)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/interfaces/IERC1271.sol#L4)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol#L4)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol#L4)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#L4)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Context.sol#L4)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Strings.sol#L4)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol#L4)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L4)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L4)
+	- [^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol#L4)
+	- [^0.8.1](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L4)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L2
+
+
+## cyclomatic-complexity
+Impact: Informational
+Confidence: High
+ - [ ] ID-24
+[AdvancedOrderEngine.fillOrders(OrderEngine.Order[],uint256[],bytes[],bytes)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256) has a high cyclomatic complexity (18).
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L70-L256
+
+
+## solc-version
+Impact: Informational
+Confidence: High
+ - [ ] ID-25
+Pragma version[0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/interfaces/IPreInteractionNotificationReceiver.sol#L3) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/interfaces/IPreInteractionNotificationReceiver.sol#L3
+
+
+ - [ ] ID-26
+Pragma version[0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/OrderEngine.sol#L2) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/OrderEngine.sol#L2
+
+
+ - [ ] ID-27
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol#L4
+
+
+ - [ ] ID-28
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Strings.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Strings.sol#L4
+
+
+ - [ ] ID-29
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol#L4
+
+
+ - [ ] ID-30
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#L4
+
+
+ - [ ] ID-31
+Pragma version[0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L2) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L2
+
+
+ - [ ] ID-32
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/access/Ownable.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/access/Ownable.sol#L4
+
+
+ - [ ] ID-33
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Context.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Context.sol#L4
+
+
+ - [ ] ID-34
+Pragma version[^0.8.1](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L4
+
+
+ - [ ] ID-35
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/interfaces/IERC1271.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/interfaces/IERC1271.sol#L4
+
+
+ - [ ] ID-36
+Pragma version[0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/interfaces/IPostInteractionNotificationReceiver.sol#L3) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/interfaces/IPostInteractionNotificationReceiver.sol#L3
+
+
+ - [ ] ID-37
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L4
+
+
+ - [ ] ID-38
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol#L4
+
+
+ - [ ] ID-39
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol#L4
+
+
+ - [ ] ID-40
+Pragma version[0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/Decoder.sol#L2) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/libraries/Decoder.sol#L2
+
+
+ - [ ] ID-41
+Pragma version[0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngineErrors.sol#L2) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngineErrors.sol#L2
+
+
+ - [ ] ID-42
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol#L4
+
+
+ - [ ] ID-43
+solc-0.8.21 is not recommended for deployment
+
+ - [ ] ID-44
+Pragma version[^0.8.0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L4) allows old versions
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/math/Math.sol#L4
+
+
+ - [ ] ID-45
+Pragma version[0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/Vault.sol#L2) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/Vault.sol#L2
+
+
+ - [ ] ID-46
+Pragma version[0.8.21](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/interfaces/IInteractionNotificationReceiver.sol#L3) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/interfaces/IInteractionNotificationReceiver.sol#L3
+
+
+## low-level-calls
+Impact: Informational
+Confidence: High
+ - [ ] ID-47
+Low level call in [Address.functionCallWithValue(address,bytes,uint256,string)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L128-L137):
+	- [(success,returndata) = target.call{value: value}(data)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L135)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L128-L137
+
+
+ - [ ] ID-48
+Low level call in [Address.sendValue(address,uint256)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L64-L69):
+	- [(success) = recipient.call{value: amount}()](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L67)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L64-L69
+
+
+ - [ ] ID-49
+Low level call in [Address.functionStaticCall(address,bytes,string)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L155-L162):
+	- [(success,returndata) = target.staticcall(data)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L160)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L155-L162
+
+
+ - [ ] ID-50
+Low level call in [Address.functionDelegateCall(address,bytes,string)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L180-L187):
+	- [(success,returndata) = target.delegatecall(data)](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L185)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/Address.sol#L180-L187
+
+
+## naming-convention
+Impact: Informational
+Confidence: High
+ - [ ] ID-51
+Parameter [AdvancedOrderEngine.manageOperatorPrivilege(address,bool)._access](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L50) is not in mixedCase
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L50
+
+
+ - [ ] ID-52
+Variable [EIP712._TYPE_HASH](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L37) is not in mixedCase
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L37
+
+
+ - [ ] ID-53
+Variable [EIP712._CACHED_THIS](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L33) is not in mixedCase
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L33
+
+
+ - [ ] ID-54
+Function [IERC20Permit.DOMAIN_SEPARATOR()](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol#L59) is not in mixedCase
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol#L59
+
+
+ - [ ] ID-55
+Variable [EIP712._CACHED_CHAIN_ID](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L32) is not in mixedCase
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L32
+
+
+ - [ ] ID-56
+Parameter [AdvancedOrderEngine.manageOperatorPrivilege(address,bool)._address](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L49) is not in mixedCase
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L49
+
+
+ - [ ] ID-57
+Variable [EIP712._HASHED_NAME](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L35) is not in mixedCase
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L35
+
+
+ - [ ] ID-58
+Variable [EIP712._CACHED_DOMAIN_SEPARATOR](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L31) is not in mixedCase
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L31
+
+
+ - [ ] ID-59
+Variable [EIP712._HASHED_VERSION](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L36) is not in mixedCase
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol#L36
+
+
+## similar-names
+Impact: Informational
+Confidence: Medium
+ - [ ] ID-60
+Variable [AdvancedOrderEngine.fillOrders(OrderEngine.Order[],uint256[],bytes[],bytes).interactionData_scope_1](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L167) is too similar to [AdvancedOrderEngine.fillOrders(OrderEngine.Order[],uint256[],bytes[],bytes).interactionData_scope_8](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L232)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L167
+
+
+ - [ ] ID-61
+Variable [AdvancedOrderEngine.fillOrders(OrderEngine.Order[],uint256[],bytes[],bytes).interactionTarget_scope_0](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L166) is too similar to [AdvancedOrderEngine.fillOrders(OrderEngine.Order[],uint256[],bytes[],bytes).interactionTarget_scope_7](https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L231)
+
+https://github.com/BlockApex/Elektrik-V2-Contracts/blob/ef9d3c9e46bb42b149c36320a8a8a6f4391ae503/src/AdvancedOrderEngine.sol#L166
+
+
 
