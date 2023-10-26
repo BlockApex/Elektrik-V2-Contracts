@@ -1,6 +1,7 @@
 name: Slither Analysis
 
 on: [push, pull_request]
+
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -14,14 +15,26 @@ jobs:
       with:
         node-version: 16
         fail-on: none
-        slither-args: --checklist --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
+        slither-args: --checklist --show-ignored-findings --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
+     
+    - name: Save Slither output to file
+      run: echo "${{ steps.slither.outputs.stdout }}" > slither-output.txt
 
-    - name: Create/update checklist as PR comment
-      uses: actions/github-script@v6
-      if: github.event_name == 'pull_request'
+    - name: Configure Git
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "actions@github.com"
+
+    - name: Commit and push changes
+      run: |
+        git add slither-output.txt
+        git commit -m "Update Slither analysis output"
+        git push
+
+    # Upload Slither Report as an Artifact
+    - name: Upload Slither Report
+      if: always() # Ensure the artifact is uploaded even if previous steps fail
+      uses: actions/upload-artifact@v3
       with:
-        script: |
-          const script = require('.github/scripts/comment')
-          const header = '# Slither report'
-          const body = `${{ steps.slither.outputs.stdout }}`
-          await script({ github, context, header, body })
+        name: slither-report
+        path: slither-output.txt 
