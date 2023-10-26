@@ -15,6 +15,7 @@ jobs:
       with:
         node-version: 16
         fail-on: none
+        target: 'src/*.sol'
         slither-args: --checklist --show-ignored-findings --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
      
     - name: Save Slither output to file
