@@ -18,7 +18,7 @@ contract Predicates {
             (current = uint32(offsets)) != 0;
             offsets >>= 32
         ) {
-            (bool success, uint256 res) = _staticcallForUint(
+            (bool success, uint256 res) = staticcallForUint(
                 address(this),
                 data[previous:current]
             );
@@ -42,7 +42,7 @@ contract Predicates {
             (current = uint32(offsets)) != 0;
             offsets >>= 32
         ) {
-            (bool success, uint256 res) = _staticcallForUint(
+            (bool success, uint256 res) = staticcallForUint(
                 address(this),
                 data[previous:current]
             );
@@ -57,7 +57,7 @@ contract Predicates {
     /// @notice Calls target with specified data and tests if it's equal to 0
     /// @return Result True if call to target returns 0. Otherwise, false
     function not(bytes calldata data) public view returns (bool) {
-        (bool success, uint256 res) = _staticcallForUint(address(this), data);
+        (bool success, uint256 res) = staticcallForUint(address(this), data);
         return success && res == 0;
     }
 
@@ -65,7 +65,7 @@ contract Predicates {
     /// @param value Value to test
     /// @return Result True if call to target returns the same value as `value`. Otherwise, false
     function eq(uint256 value, bytes calldata data) public view returns (bool) {
-        (bool success, uint256 res) = _staticcallForUint(address(this), data);
+        (bool success, uint256 res) = staticcallForUint(address(this), data);
         return success && res == value;
     }
 
@@ -73,7 +73,7 @@ contract Predicates {
     /// @param value Value to test
     /// @return Result True if call to target returns value which is lower than `value`. Otherwise, false
     function lt(uint256 value, bytes calldata data) public view returns (bool) {
-        (bool success, uint256 res) = _staticcallForUint(address(this), data);
+        (bool success, uint256 res) = staticcallForUint(address(this), data);
         return success && res < value;
     }
 
@@ -81,7 +81,7 @@ contract Predicates {
     /// @param value Value to test
     /// @return Result True if call to target returns value which is bigger than `value`. Otherwise, false
     function gt(uint256 value, bytes calldata data) public view returns (bool) {
-        (bool success, uint256 res) = _staticcallForUint(address(this), data);
+        (bool success, uint256 res) = staticcallForUint(address(this), data);
         return success && res > value;
     }
 
@@ -91,15 +91,15 @@ contract Predicates {
         address target,
         bytes calldata data
     ) public view returns (uint256) {
-        (bool success, uint256 res) = _staticcallForUint(target, data);
+        (bool success, uint256 res) = staticcallForUint(target, data);
         if (!success) revert ArbitraryStaticCallFailed();
         return res;
     }
 
-    function _staticcallForUint(
+    function staticcallForUint(
         address target,
         bytes calldata data
-    ) internal view returns (bool success, uint256 res) {
+    ) public view returns (bool success, uint256 res) {
         assembly ("memory-safe") {
             // solhint-disable-line no-inline-assembly
             let ptr := mload(0x40)

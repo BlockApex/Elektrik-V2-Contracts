@@ -11,3 +11,4 @@ error BadSignature();
 error IncorrectDataLength();
 error LimitPriceNotRespected(uint256 desiredAmount, uint256 offeredAmount);
 error NotAnOperator(address caller);
+error PredicateIsNotTrue();
