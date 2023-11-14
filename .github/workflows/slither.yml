@@ -15,7 +15,7 @@ jobs:
       with:
         node-version: 16
         fail-on: none
-        slither-args: --checklist --show-ignored-findings --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
+        slither-args: --checklist --filter-paths "openzepellin" --show-ignored-findings --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
      
     - name: Save Slither output to file
       run: echo "${{ steps.slither.outputs.stdout }}" > slither-output.txt
