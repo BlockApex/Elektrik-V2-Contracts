@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
+import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
+
 library OrderEngine {
     // TODO: pack struct
     // TODO; signing scheme required?
@@ -11,13 +13,13 @@ library OrderEngine {
         uint256 buyTokenAmount; // TODO: see if smaller data type could be used
         uint256 feeAmounts;
         address maker;
-        address taker; // null on public orders
+        address operator; // null on public orders
         address recipient; // TBD: use null to represent maker? Right now expecting explicit address set
-        address sellToken;
-        address buyToken;
+        IERC20 sellToken;
+        IERC20 buyToken;
         bool isPartiallyFillable;
         bytes32 extraData;
-        bytes predicates;
+        bytes predicateCalldata;
         bytes preInteraction;
         bytes postInteraction;
     }
@@ -31,13 +33,13 @@ library OrderEngine {
             "uint256 buyTokenAmount,"
             "uint256 feeAmounts,"
             "address maker,"
-            "address taker,"
+            "address operator,"
             "address recipient,"
-            "address sellToken,"
-            "address buyToken,"
+            "IERC20 sellToken,"
+            "IERC20 buyToken,"
             "bool isPartiallyFillable,"
             "bytes32 extraData,"
-            "bytes predicates,"
+            "bytes predicateCalldata,"
             "bytes preInteraction,"
             "bytes postInteraction"
             ")"
@@ -54,13 +56,13 @@ library OrderEngine {
                     order.buyTokenAmount,
                     order.feeAmounts,
                     order.maker,
-                    order.taker,
+                    order.operator,
                     order.recipient,
                     order.sellToken,
                     order.buyToken,
                     order.isPartiallyFillable,
                     order.extraData,
-                    keccak256(order.predicates),
+                    keccak256(order.predicateCalldata),
                     keccak256(order.preInteraction),
                     keccak256(order.postInteraction)
                 )
