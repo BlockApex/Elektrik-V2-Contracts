@@ -418,6 +418,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
                     order.maker,
                     executedSellAmount,
                     executedBuyAmount,
+                    filledSellAmount[orderHash],
                     interactionData
                 );
         }
@@ -516,6 +517,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
                     order.maker,
                     executedSellAmount,
                     executedBuyAmount,
+                    filledSellAmount[orderHash],
                     interactionData
                 );
         }

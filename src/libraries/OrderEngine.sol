@@ -4,8 +4,6 @@ pragma solidity 0.8.21;
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 library OrderEngine {
-    // TODO: pack struct
-    // TODO; signing scheme required?
     struct Order {
         uint256 nonce;
         uint256 validTill;

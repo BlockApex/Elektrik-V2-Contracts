@@ -12,6 +12,7 @@ interface IPostInteractionNotificationReceiver {
      * @param maker Address of the order maker.
      * @param executedSellAmount Sell token amount requested by the facilitator from order maker.
      * @param executedBuyAmount Buy token amount offered by the facilitator to the maker.
+     * @param filledSellAmount Amount of sell tokens that would be filled after this transaction is completed.
      * @param interactionData Interaction calldata
      */
     function fillOrderPostInteraction(
@@ -19,6 +20,7 @@ interface IPostInteractionNotificationReceiver {
         address maker,
         uint256 executedSellAmount,
         uint256 executedBuyAmount,
+        uint256 filledSellAmount,
         bytes memory interactionData
     ) external;
 }
