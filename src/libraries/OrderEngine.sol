@@ -7,12 +7,12 @@ library OrderEngine {
     struct Order {
         uint256 nonce;
         uint256 validTill;
-        uint256 sellTokenAmount; // TODO: see if smaller data type could be used
-        uint256 buyTokenAmount; // TODO: see if smaller data type could be used
-        uint256 feeAmounts;
+        uint256 sellTokenAmount;
+        uint256 buyTokenAmount;
+        uint256 feeAmounts; // Optional
         address maker;
-        address operator; // null on public orders
-        address recipient; // TBD: use null to represent maker? Right now expecting explicit address set
+        address operator; // Null on public orders
+        address recipient;
         IERC20 sellToken;
         IERC20 buyToken;
         bool isPartiallyFillable;

@@ -1,30 +1,10 @@
-# AdvancedOrderEngine Contract
-
-The `AdvancedOrderEngine` contract is a core contract of the Elektrik Limit Order Protocol, responsible for executing multiple orders within a single transaction.
+# Order Execution Flow
 
 ## Flow chart diagram
 
 [View Flow Chart Diagram](https://miro.com/app/board/uXjVMi9rdBk=/?moveToWidget=3458764566051732586&cot=14)
 
-## Modifiers
-
-### `onlyOperators`
-
-The `onlyOperators` modifier restricts function calls to designated operator addresses, which are whitelisted by the contract owner.
-
-## Functions
-
-### `constructor`
-
-The constructor function for this contract accepts two parameters: `name` and `version` of the domain separator. This ensures that all orders are valid within a specific context.
-
-### `manageOperatorPrivilege`
-
-This function is exclusively accessible to the contract owner. It allows the owner to grant or revoke operator privileges, thus controlling who can call the `fillOrders` function.
-
-### `fillOrders`
-
-The fillOrders function is a core function of the Elektrik Limit Order Protocol, enabling operators to execute multiple orders in a single transaction by utilizing a solution, which is ideally an optimal one, proposed by a facilitator. Here's an overview of the process:
+## Order Execution Flow in the Smart Contract
 
 1. **Transaction-Specific Sanity Checks**: The function begins by conducting initial checks to ensure the correctness of the transaction's calldata. For example, it verifies that the function is called with at least one order.
 

@@ -1,4 +1,4 @@
-# Order Parameters and Configuration
+# Order Configuration
 
 When creating a limit order on Elektrik Limit Order Protocol, users can configure various parameters. These parameters define the order's characteristics and behavior, offering a highly versatile experience. Here are the components available for user configuration when creating a limit order on the Elektrik Limit Order Protocol:
 
