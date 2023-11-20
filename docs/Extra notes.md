@@ -9,3 +9,4 @@
 - Charging fee amounts separately on top of sell tokens, similar to COW swap, and transferring them to the fee collector's address.
 - The contract only allows settling orders with both buy and sell tokens whitelisted.
 - The contract is not utilizing OpenZeppelin v5.
+- Expecting the facilitator to ensure that there are no duplicate addresses in the 'borrowedTokens' array to save gas.
