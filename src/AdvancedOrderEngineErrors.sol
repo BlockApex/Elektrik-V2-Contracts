@@ -3,7 +3,7 @@ pragma solidity 0.8.21;
 
 error ArraysLengthMismatch();
 error ZeroFacilitatorTargetAddress();
-error EmptyOrdersArray();
+error EmptyArray();
 error OrderExpired(bytes32 orderHash);
 error ZeroAmount();
 error ZeroAddress();
@@ -19,3 +19,5 @@ error PrivateOrder();
 error OrderFilledAlready();
 error InvalidInteractionTarget();
 error AccessDenied();
+error SameFeeCollectorAddress();
+error TokenNotWhitelisted();
