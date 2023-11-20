@@ -2,7 +2,6 @@
 pragma solidity 0.8.21;
 
 error ArraysLengthMismatch();
-error ZeroFacilitatorTargetAddress();
 error EmptyArray();
 error OrderExpired(bytes32 orderHash);
 error ZeroAmount();
