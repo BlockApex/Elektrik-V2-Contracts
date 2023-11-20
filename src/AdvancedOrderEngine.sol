@@ -6,6 +6,7 @@ import {IERC1271} from "openzeppelin/interfaces/IERC1271.sol";
 import {OrderEngine} from "./libraries/OrderEngine.sol";
 import {IPreInteractionNotificationReceiver} from "./interfaces/IPreInteractionNotificationReceiver.sol";
 import {IPostInteractionNotificationReceiver} from "./interfaces/IPostInteractionNotificationReceiver.sol";
+import {IPredicates} from "./interfaces/IPredicates.sol";
 
 import {IInteractionNotificationReceiver} from "./interfaces/IInteractionNotificationReceiver.sol";
 
@@ -23,6 +24,9 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
     using OrderEngine for OrderEngine.Order;
     using Decoder for bytes;
 
+    // TBD: not using IPredicate type for now as it requires me to typecast to address many times
+    address public predicates;
+
     mapping(address => bool) public isOperator;
 
     event OrderFill(
@@ -32,11 +36,18 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
         uint256 offeredAmount
     );
     event OperatorAccessModified(address indexed authorized, bool access);
+    event PredicatesChanged(address oldPredicateAddr, address newPredicateAddr);
 
     constructor(
         string memory name,
-        string memory version
-    ) EIP712(name, version) {}
+        string memory version,
+        address _predicate
+    ) EIP712(name, version) {
+        if (_predicate == address(0)) {
+            revert ZeroAddress();
+        }
+        predicates = _predicate;
+    }
 
     modifier onlyOperator() {
         if (!isOperator[msg.sender]) {
@@ -58,6 +69,28 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
         isOperator[_address] = _access;
 
         emit OperatorAccessModified(_address, _access);
+    }
+
+    function setPredicateAddress(address _newPredicateAddr) external onlyOwner {
+        if (_newPredicateAddr == address(0)) {
+            revert ZeroAddress();
+        }
+
+        emit PredicatesChanged(predicates, _newPredicateAddr);
+
+        // TBD: should we not allow if owner is trying to set same address? (con: additional gas)
+        // Overwrites the access previously granted.
+        predicates = _newPredicateAddr;
+    }
+
+    function checkPredicate(
+        bytes calldata predicate
+    ) public view returns (bool) {
+        (bool success, uint256 res) = IPredicates(predicates).staticcallForUint(
+            predicates,
+            predicate
+        );
+        return success && res == 1;
     }
 
     /**
@@ -135,7 +168,10 @@ contract AdvancedOrderEngine is Vault, Ownable2Step, EIP712 {
                 }
             }
 
-            // STUB: VERIFY PREDICATES //
+            if (order.predicates.length > 0) {
+                if (!checkPredicate(order.predicates))
+                    revert PredicateIsNotTrue();
+            }
 
             if (order.preInteraction.length >= 20) {
                 // proceed only if interaction length is enough to store address
