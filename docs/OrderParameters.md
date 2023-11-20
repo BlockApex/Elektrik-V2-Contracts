@@ -14,9 +14,9 @@ When creating a limit order on Elektrik Limit Order Protocol, users can configur
 
 6. `maker`: The address from which funds will be transferred to the vault.
 
-7. `taker`: This field is used for making orders private. (Note: Use cases and field name may change; to be determined.)
+7. `operator`: This field is used for making orders private. Null address means order is public.
 
-8. `recipient`: This is the address where the buy tokens will be received upon order execution. If users want to receive funds at the maker's address, set this field to the maker's address.
+8. `recipient`: This is the address where the buy tokens will be received upon order execution. If makers want to receive funds at the maker's address, set this field to the maker's address.
 
 9. `sellToken`: The token the user is willing to sell in the order.
 
@@ -24,7 +24,7 @@ When creating a limit order on Elektrik Limit Order Protocol, users can configur
 
 11. `isPartiallyFillable`: Users can choose whether the order can be partially filled or must be executed in full.
 
-12. `extraData`: The use case for this field is yet to be determined.
+12. `extraData`: Any data useful for off-chain calculation when an order is filled
 
 13. `predicates`: Makers can specify any number of arbitrary static calls, which determine whether an order can be executed. This feature can be utilized for various purposes, including stop loss or take profit orders.
 
