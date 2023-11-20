@@ -96,7 +96,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         predicates = predicatesAddr;
 
         emit FeeCollectorChanged(address(0), feeCollectorAddr);
-        emit PredicatesChanged(address(0), predicatesAddr);
+        emit PredicatesChanged(address(0), feeCollectorAddr);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -160,23 +160,23 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
          */
         // Revert if the tokens array length is zero.
         if (tokens.length == 0) {
-            EmptyArray();
+            revert EmptyArray();
         }
 
         // Revert if the length of tokens and access array is not the same.
         if (tokens.length != access.length) {
-            ArraysLengthMismatch();
+            revert ArraysLengthMismatch();
         }
 
         for (uint256 i; i < tokens.length; ) {
             // Revert if the token address is a zero address.
             if (address(tokens[i]) == address(0)) {
-                ZeroAddress();
+                revert ZeroAddress();
             }
 
             // Revert if the access status remains unchanged.
             if (isWhitelistedToken[tokens[i]] == access[i]) {
-                AccessStatusUnchanged();
+                revert AccessStatusUnchanged();
             }
 
             isWhitelistedToken[tokens[i]] = access[i];
