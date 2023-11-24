@@ -21,6 +21,15 @@ To run code in this repository, follow these steps:
    ```bash
    forge build
 
-5. **Run tests:**
+5. **Run unit tests:**
    ```bash
-   forge test
+   source .env
+   forge test -vvv --rpc-url $MAINNET_RPC_URL --match-contract AdvancedOrderEngineTest
+   ```
+
+6. **Run deploy and setup script**
+   ```bash
+   source .env
+   forge script script/deployOrderEngine.s.sol --rpc-url $PEGASUS_RPC_URL --legacy --broadcast
+   ```
+
