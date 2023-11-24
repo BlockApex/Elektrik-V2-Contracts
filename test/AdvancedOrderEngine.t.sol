@@ -104,6 +104,54 @@ contract AdvancedOrderEngineTest is Test {
         advancedOrderEngine.updateTokenWhitelist(tokens, access);
     }
 
+    function testChangePredicateAddress() public {
+        vm.startPrank(admin);
+
+        IPredicates newPredicatesAddr = IPredicates(address(3)); // Assuming this is a valid address
+
+        // Change to a new address
+        advancedOrderEngine.changePredicateAddress(newPredicatesAddr);
+        assertEq(address(advancedOrderEngine.predicates()), address(newPredicatesAddr));
+
+        // Test for ZeroAddress revert
+        vm.expectRevert(ZeroAddress.selector);
+        advancedOrderEngine.changePredicateAddress(IPredicates(address(0)));
+
+        // Test for SamePredicateAddress revert
+        vm.expectRevert(SamePredicateAddress.selector);
+        advancedOrderEngine.changePredicateAddress(newPredicatesAddr);
+
+        // Test for onlyOwner modifier
+        vm.stopPrank();
+        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        advancedOrderEngine.changePredicateAddress(newPredicatesAddr);
+    }
+
+    function testChangeFeeCollectorAddress() public {
+        vm.startPrank(admin);
+
+        address newFeeCollectorAddr = address(4); // Assuming this is a valid address
+
+        // Change to a new fee collector address
+        advancedOrderEngine.changeFeeCollectorAddress(newFeeCollectorAddr);
+        assertEq(advancedOrderEngine.feeCollector(), newFeeCollectorAddr);
+
+        // Test for ZeroAddress revert
+        vm.expectRevert(ZeroAddress.selector);
+        advancedOrderEngine.changeFeeCollectorAddress(address(0));
+
+        // Test for SameFeeCollectorAddress revert
+        vm.expectRevert(SameFeeCollectorAddress.selector);
+        advancedOrderEngine.changeFeeCollectorAddress(newFeeCollectorAddr);
+
+        // Test for onlyOwner modifier
+        vm.stopPrank();
+        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        advancedOrderEngine.changeFeeCollectorAddress(newFeeCollectorAddr);
+    }
+
+    
+
 
     function testFillOrders() public {
 
