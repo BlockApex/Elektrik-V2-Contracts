@@ -92,7 +92,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
             revert ZeroAddress();
         }
 
-        feeCollectorAddr = feeCollectorAddr;
+        feeCollector = feeCollectorAddr;
         predicates = predicatesAddr;
 
         emit FeeCollectorChanged(address(0), feeCollectorAddr);

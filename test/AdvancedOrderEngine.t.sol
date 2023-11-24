@@ -219,9 +219,6 @@ contract AdvancedOrderEngineTest is Test {
     }
 
     function testFillOrders() public {
-        bytes memory facilitatorInteraction = '0x';
-        console2.log(facilitatorInteraction.length);
-
         OrderEngine.Order memory buyOrder = getDummyBuyOrder();
         OrderEngine.Order memory sellOrder = getDummySellOrder();
 
