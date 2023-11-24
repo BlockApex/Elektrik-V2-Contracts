@@ -6,15 +6,21 @@ import "./../src/Predicates.sol";
 import "./../src/interfaces/IPredicates.sol";
 import "./../src/AdvancedOrderEngine.sol";
 import "./../src/AdvancedOrderEngineErrors.sol";
+import "./../src/libraries/OrderEngine.sol";
 import "openzeppelin/token/ERC20/IERC20.sol";
+import "openzeppelin/utils/cryptography/ECDSA.sol";
 
 contract AdvancedOrderEngineTest is Test {
     Predicates predicates;
     AdvancedOrderEngine advancedOrderEngine;
     address zeroAddress = address(0);
     address feeCollector = address(1);
-    address operator = address(2);
     address admin = address(3);
+    uint256 makerPrivateKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80; //also owner of contract
+    address maker = vm.addr(makerPrivateKey);
+    uint256 operatorPrivateKey = 0xB0B; //also owner of contract
+    address operator = vm.addr(makerPrivateKey);
+
 
     function setUp() public {
         vm.startPrank(admin);
@@ -23,6 +29,21 @@ contract AdvancedOrderEngineTest is Test {
         advancedOrderEngine = new AdvancedOrderEngine(IPredicates(address(predicates)), feeCollector);
 
         advancedOrderEngine.manageOperatorPrivilege(operator, true);
+
+        IERC20[] memory tokens = new IERC20[](2);
+        bool[] memory access = new bool[](2);
+
+        tokens[0] = IERC20(0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4); // Assuming these addresses are valid ERC20 tokens
+        tokens[1] = IERC20(0x8bA5b0452b0a4da211579AA2e105c3da7C0Ad36c);
+
+        // Whitelisting tokens
+        access[0] = true;
+        access[1] = true;
+        advancedOrderEngine.updateTokenWhitelist(tokens, access);
+
+        vm.deal(maker, 20 ether);
+        vm.deal(operator, 20 ether);
+        vm.deal(admin, 20 ether);
 
         vm.stopPrank();
     }
@@ -150,11 +171,104 @@ contract AdvancedOrderEngineTest is Test {
         advancedOrderEngine.changeFeeCollectorAddress(newFeeCollectorAddr);
     }
 
-    
-
-
     function testFillOrders() public {
+        bytes memory facilitatorInteraction = '0x';
+        console2.log(facilitatorInteraction.length);
 
+        OrderEngine.Order memory buyOrder = getDummyBuyOrder();
+        OrderEngine.Order memory sellOrder = getDummySellOrder();
+
+        vm.startPrank(operator);
+
+        OrderEngine.Order[] memory orders = new OrderEngine.Order[](2);
+
+        orders[0] = sellOrder;
+        orders[1] = buyOrder;
+
+        uint256[] memory sell = new uint256[](2);
+
+        sell[0] = sellOrder.sellTokenAmount;
+        sell[1] = buyOrder.sellTokenAmount;
+
+        uint256[] memory buy = new uint256[](2);
+
+        buy[0] = sellOrder.buyTokenAmount;
+        buy[1] = buyOrder.buyTokenAmount;
+
+        bytes[] memory sigs = new bytes[](2);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(makerPrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(makerPrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        sigs[0] = sellOrderSignature;
+        sigs[1] = buyOrderSignature;
+
+        uint256[] memory emptyArray2 = new uint256[](0);
+        IERC20[] memory emptyArray1 = new IERC20[](0);
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            sigs,
+            '0x',
+            emptyArray1,
+            emptyArray2
+        );
+
+        vm.stopPrank();
+    }
+
+    function getDummyBuyOrder() private view returns(OrderEngine.Order memory) {
+        return OrderEngine.Order(
+            123, // Replace with the desired nonce value
+            block.timestamp + 3600, // Replace with the desired validTill timestamp
+            2000000, // 2 USDC
+            1000000000000000000, // 1 MATIC
+            0, // No fee
+            maker, // Maker's Ethereum address
+            operator, // Taker's Ethereum address (or null for public order)
+            0xFC9a3ebc5282613E9A4544A4D7FC0e02DD6f1A43, // Recipient's Ethereum address
+            IERC20(0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4), // USDC token address
+            IERC20(0x8bA5b0452b0a4da211579AA2e105c3da7C0Ad36c), // MATIC token address
+            true, // Replace with true or false depending on whether the order is partially fillable
+            "0x", // Replace with any extra data as a hexadecimal string
+            "0x6f720000", // Replace with predicate calldata as a hexadecimal string
+            "0x", // Replace with pre-interaction data as a hexadecimal string
+            "0x" // Replace with post-interaction data as a hexadecimal string
+        );
+    }
+
+    function getDummySellOrder() private view returns(OrderEngine.Order memory) {
+        return OrderEngine.Order(
+            123, // Replace with the desired nonce value
+            1637020800, // Replace with the desired validTill timestamp
+            2000000, // 2 USDC
+            1000000000000000000, // 1 MATIC
+            0, // No fee
+            maker, // Maker's Ethereum address
+            operator, // Taker's Ethereum address (or null for public order)
+            0xFC9a3ebc5282613E9A4544A4D7FC0e02DD6f1A43, // Recipient's Ethereum address
+            IERC20(0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4), // USDC token address
+            IERC20(0x8bA5b0452b0a4da211579AA2e105c3da7C0Ad36c), // MATIC token address
+            true, // Replace with true or false depending on whether the order is partially fillable
+            "0x", // Replace with any extra data as a hexadecimal string
+            "0x6f720000", // Replace with predicate calldata as a hexadecimal string
+            "0x", // Replace with pre-interaction data as a hexadecimal string
+            "0x" // Replace with post-interaction data as a hexadecimal string
+        );
+    }
+
+    function _hashTypedDataV4(bytes32 structHash) internal view virtual returns (bytes32) {
+        return ECDSA.toTypedDataHash(advancedOrderEngine.DOMAIN_SEPARATOR(), structHash);
     }
 
 }
+
+/** Predicates selectors
+ * and = 0x616e6400
+ * or = 0x6f720000
+ */
