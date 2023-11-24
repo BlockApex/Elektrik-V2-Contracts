@@ -181,11 +181,11 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
 
             isWhitelistedToken[tokens[i]] = access[i];
 
+            emit WhitelistStatusUpdated(address(tokens[i]), access[i]);
+
             unchecked {
                 ++i;
             }
-
-            emit WhitelistStatusUpdated(address(tokens[i]), access[i]);
         }
     }
 
