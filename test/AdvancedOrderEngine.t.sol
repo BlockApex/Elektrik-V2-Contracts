@@ -7,14 +7,22 @@ import "./../src/interfaces/IPredicates.sol";
 import "./../src/AdvancedOrderEngine.sol";
 import "./../src/AdvancedOrderEngineErrors.sol";
 import "./../src/libraries/OrderEngine.sol";
+import "./../src/Helper/GenerateCalldata.sol";
+import "./interfaces/swaprouter.sol";
+import "./interfaces/weth9.sol";
 import "openzeppelin/token/ERC20/IERC20.sol";
 import "openzeppelin/utils/cryptography/ECDSA.sol";
 
 contract AdvancedOrderEngineTest is Test {
     Predicates predicates;
     AdvancedOrderEngine advancedOrderEngine;
+    GenerateCalldata generateCalldata;
+    IERC20 wmatic = IERC20(0x7c9f4C87d911613Fe9ca58b579f737911AAD2D43);
+    IERC20 usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    IERC20 weth = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    ISwapRouter02 swapRouter02 = ISwapRouter02(0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45);
     address zeroAddress = address(0);
-    address feeCollector = address(1);
+    address feeCollector = address(147578);
     address admin = address(3);
     uint256 makerPrivateKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80; //also owner of contract
     address maker = vm.addr(makerPrivateKey);
@@ -26,6 +34,7 @@ contract AdvancedOrderEngineTest is Test {
         vm.startPrank(admin);
 
         predicates = new Predicates();
+        generateCalldata = new GenerateCalldata(address(predicates));
         advancedOrderEngine = new AdvancedOrderEngine(IPredicates(address(predicates)), feeCollector);
 
         advancedOrderEngine.manageOperatorPrivilege(operator, true);
@@ -33,8 +42,8 @@ contract AdvancedOrderEngineTest is Test {
         IERC20[] memory tokens = new IERC20[](2);
         bool[] memory access = new bool[](2);
 
-        tokens[0] = IERC20(0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4); // Assuming these addresses are valid ERC20 tokens
-        tokens[1] = IERC20(0x8bA5b0452b0a4da211579AA2e105c3da7C0Ad36c);
+        tokens[0] = usdc; // Assuming these addresses are valid ERC20 tokens
+        tokens[1] = weth;
 
         // Whitelisting tokens
         access[0] = true;
@@ -44,6 +53,44 @@ contract AdvancedOrderEngineTest is Test {
         vm.deal(maker, 20 ether);
         vm.deal(operator, 20 ether);
         vm.deal(admin, 20 ether);
+    
+        vm.stopPrank();
+
+        vm.startPrank(maker);
+
+        weth.approve(address(swapRouter02), UINT256_MAX);
+        weth.approve(address(advancedOrderEngine), UINT256_MAX);
+        usdc.approve(address(swapRouter02), UINT256_MAX);
+        usdc.approve(address(advancedOrderEngine), UINT256_MAX);
+        // weth.approve(address(swapRouter02), UINT256_MAX);
+
+        // get usdc
+        swapRouter02.exactInputSingle{value: 1 ether}(
+            ISwapRouter02.ExactInputSingleParams (
+                address(weth),
+                address(usdc),
+                500,
+                maker,
+                1 ether,
+                0,
+                0
+            )
+        );
+
+        IWETH9(address(weth)).deposit{value: 1 ether}();
+
+        // // get matic
+        // swapRouter02.exactInputSingle{value: 1 ether}(
+        //     ISwapRouter02.ExactInputSingleParams (
+        //         address(weth),
+        //         address(wmatic),
+        //         3000,
+        //         maker,
+        //         1 ether,
+        //         0,
+        //         0
+        //     )
+        // );
 
         vm.stopPrank();
     }
@@ -226,17 +273,17 @@ contract AdvancedOrderEngineTest is Test {
         return OrderEngine.Order(
             123, // Replace with the desired nonce value
             block.timestamp + 3600, // Replace with the desired validTill timestamp
-            2000000, // 2 USDC
-            1000000000000000000, // 1 MATIC
+            4800000000000000, // 0.0048 weth
+            10000000, // 10 USDC
             0, // No fee
             maker, // Maker's Ethereum address
             operator, // Taker's Ethereum address (or null for public order)
             0xFC9a3ebc5282613E9A4544A4D7FC0e02DD6f1A43, // Recipient's Ethereum address
-            IERC20(0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4), // USDC token address
-            IERC20(0x8bA5b0452b0a4da211579AA2e105c3da7C0Ad36c), // MATIC token address
+            weth, // MATIC token address
+            usdc, // USDC token address
             true, // Replace with true or false depending on whether the order is partially fillable
             "0x", // Replace with any extra data as a hexadecimal string
-            "0x6f720000", // Replace with predicate calldata as a hexadecimal string
+            "", // Replace with predicate calldata as a hexadecimal string
             "0x", // Replace with pre-interaction data as a hexadecimal string
             "0x" // Replace with post-interaction data as a hexadecimal string
         );
@@ -244,19 +291,19 @@ contract AdvancedOrderEngineTest is Test {
 
     function getDummySellOrder() private view returns(OrderEngine.Order memory) {
         return OrderEngine.Order(
-            123, // Replace with the desired nonce value
-            1637020800, // Replace with the desired validTill timestamp
-            2000000, // 2 USDC
-            1000000000000000000, // 1 MATIC
+            124, // Replace with the desired nonce value
+            block.timestamp + 3600, // Replace with the desired validTill timestamp
+            10000000, // 10 USDC
+            4800000000000000, // 0.0048 weth
             0, // No fee
             maker, // Maker's Ethereum address
             operator, // Taker's Ethereum address (or null for public order)
             0xFC9a3ebc5282613E9A4544A4D7FC0e02DD6f1A43, // Recipient's Ethereum address
-            IERC20(0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4), // USDC token address
-            IERC20(0x8bA5b0452b0a4da211579AA2e105c3da7C0Ad36c), // MATIC token address
+            usdc, // USDC token address
+            weth, // MATIC token address
             true, // Replace with true or false depending on whether the order is partially fillable
             "0x", // Replace with any extra data as a hexadecimal string
-            "0x6f720000", // Replace with predicate calldata as a hexadecimal string
+            "", // Replace with predicate calldata as a hexadecimal string
             "0x", // Replace with pre-interaction data as a hexadecimal string
             "0x" // Replace with post-interaction data as a hexadecimal string
         );
