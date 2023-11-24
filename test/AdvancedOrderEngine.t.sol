@@ -24,10 +24,12 @@ contract AdvancedOrderEngineTest is Test {
     address zeroAddress = address(0);
     address feeCollector = address(147578);
     address admin = address(3);
-    uint256 makerPrivateKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80; //also owner of contract
-    address maker = vm.addr(makerPrivateKey);
-    uint256 operatorPrivateKey = 0xB0B; //also owner of contract
-    address operator = vm.addr(makerPrivateKey);
+    uint256 maker1PrivateKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80; //also owner of contract
+    address maker1 = vm.addr(maker1PrivateKey);
+    uint256 maker2PrivateKey = 0xac0974bec39a17e36ba4a6b4d233ff944bacb478cbed5efcae784d7bf4f2ff80; //also owner of contract
+    address maker2 = vm.addr(maker2PrivateKey);
+    uint256 operatorPrivateKey = 0xB0B; 
+    address operator = vm.addr(operatorPrivateKey);
 
 
     function setUp() public {
@@ -50,19 +52,17 @@ contract AdvancedOrderEngineTest is Test {
         access[1] = true;
         advancedOrderEngine.updateTokenWhitelist(tokens, access);
 
-        vm.deal(maker, 20 ether);
+        vm.deal(maker1, 20 ether);
+        vm.deal(maker2, 20 ether);
         vm.deal(operator, 20 ether);
         vm.deal(admin, 20 ether);
     
         vm.stopPrank();
 
-        vm.startPrank(maker);
+        vm.startPrank(maker2);
 
-        weth.approve(address(swapRouter02), UINT256_MAX);
-        weth.approve(address(advancedOrderEngine), UINT256_MAX);
         usdc.approve(address(swapRouter02), UINT256_MAX);
         usdc.approve(address(advancedOrderEngine), UINT256_MAX);
-        // weth.approve(address(swapRouter02), UINT256_MAX);
 
         // get usdc
         swapRouter02.exactInputSingle{value: 1 ether}(
@@ -70,27 +70,22 @@ contract AdvancedOrderEngineTest is Test {
                 address(weth),
                 address(usdc),
                 500,
-                maker,
+                maker2,
                 1 ether,
                 0,
                 0
             )
         );
 
-        IWETH9(address(weth)).deposit{value: 1 ether}();
+        vm.stopPrank();
 
-        // // get matic
-        // swapRouter02.exactInputSingle{value: 1 ether}(
-        //     ISwapRouter02.ExactInputSingleParams (
-        //         address(weth),
-        //         address(wmatic),
-        //         3000,
-        //         maker,
-        //         1 ether,
-        //         0,
-        //         0
-        //     )
-        // );
+        vm.startPrank(maker1);
+
+        weth.approve(address(swapRouter02), UINT256_MAX);
+        weth.approve(address(advancedOrderEngine), UINT256_MAX);
+
+        // get weth
+        IWETH9(address(weth)).deposit{value: 1 ether}();
 
         vm.stopPrank();
     }
@@ -221,6 +216,10 @@ contract AdvancedOrderEngineTest is Test {
     function testFillOrders() public {
         OrderEngine.Order memory buyOrder = getDummyBuyOrder();
         OrderEngine.Order memory sellOrder = getDummySellOrder();
+        uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
+        uint beforeWethMaker2 = weth.balanceOf(maker2);
+        uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
+        uint beforeWethMaker1 = weth.balanceOf(maker1);
 
         vm.startPrank(operator);
 
@@ -241,10 +240,10 @@ contract AdvancedOrderEngineTest is Test {
 
         bytes[] memory sigs = new bytes[](2);
 
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(makerPrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
         bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
 
-        (v, r, s) = vm.sign(makerPrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
         bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
 
         sigs[0] = sellOrderSignature;
@@ -264,6 +263,16 @@ contract AdvancedOrderEngineTest is Test {
         );
 
         vm.stopPrank();
+
+        uint afterUsdcMaker2 = usdc.balanceOf(maker2);
+        uint afterWethMaker2 = weth.balanceOf(maker2);
+        uint afterUsdcMaker1 = usdc.balanceOf(maker1);
+        uint afterWethMaker1 = weth.balanceOf(maker1);
+
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.sellTokenAmount);
+        assertEq(beforeWethMaker2 + sellOrder.buyTokenAmount, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buyOrder.buyTokenAmount, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount);
     }
 
     function getDummyBuyOrder() private view returns(OrderEngine.Order memory) {
@@ -273,9 +282,9 @@ contract AdvancedOrderEngineTest is Test {
             4800000000000000, // 0.0048 weth
             10000000, // 10 USDC
             0, // No fee
-            maker, // Maker's Ethereum address
+            maker1, // Maker's Ethereum address
             operator, // Taker's Ethereum address (or null for public order)
-            0xFC9a3ebc5282613E9A4544A4D7FC0e02DD6f1A43, // Recipient's Ethereum address
+            maker1, // Recipient's Ethereum address
             weth, // MATIC token address
             usdc, // USDC token address
             true, // Replace with true or false depending on whether the order is partially fillable
@@ -293,9 +302,9 @@ contract AdvancedOrderEngineTest is Test {
             10000000, // 10 USDC
             4800000000000000, // 0.0048 weth
             0, // No fee
-            maker, // Maker's Ethereum address
+            maker2, // Maker's Ethereum address
             operator, // Taker's Ethereum address (or null for public order)
-            0xFC9a3ebc5282613E9A4544A4D7FC0e02DD6f1A43, // Recipient's Ethereum address
+            maker2, // Recipient's Ethereum address
             usdc, // USDC token address
             weth, // MATIC token address
             true, // Replace with true or false depending on whether the order is partially fillable
