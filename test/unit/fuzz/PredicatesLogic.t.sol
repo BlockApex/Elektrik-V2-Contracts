@@ -35,7 +35,8 @@ contract VerifyPredicatesLogicTest is Test {
     function test_lt(uint256 value,uint256 target_value) public {
 
         vm.assume(value > 0 && target_value > 0);
-        bytes memory predicate = generateCalldata.generateCalldataLt(value,target_value);
+        // bound()
+        bytes memory predicate = generateCalldata.generateCalldatadynamic("lt",value,target_value);
         
         // target_value < value
         if (value > target_value) {
@@ -52,7 +53,7 @@ contract VerifyPredicatesLogicTest is Test {
 
         vm.assume(value > 0 && target_value > 0);
         
-        bytes memory predicate = generateCalldata.generateCalldataGt(value,target_value);
+        bytes memory predicate = generateCalldata.generateCalldatadynamic("gt",value,target_value);
         
         if (value < target_value) {
         // Expect verify to return true if target_value is greater than value
@@ -70,7 +71,7 @@ contract VerifyPredicatesLogicTest is Test {
 
         vm.assume(value > 0 && target_value > 0);
         
-        bytes memory predicate = generateCalldata.generateCalldataEq(value,target_value);
+        bytes memory predicate = generateCalldata.generateCalldatadynamic("eq",value,target_value);
         
         if (value == target_value) {
         // Expect verify to return true if target_value is greater than value
@@ -119,6 +120,8 @@ contract VerifyPredicatesLogicTest is Test {
         verifyPredicate.verify(predicate);
         
     }
+
+
     }
 
 

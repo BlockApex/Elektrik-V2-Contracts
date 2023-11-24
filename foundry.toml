@@ -13,6 +13,16 @@ optimizer_runs = 10_000
 gas_reports = ['*']
 verbosity = 2
 
+[profile.default.fuzz]
+  max_test_rejects = 1_000_000 # Number of times `vm.assume` can fail
+  runs = 50
+
+[profile.default.invariant]
+  call_override = false # Override unsafe external calls to perform reentrancy checks
+  depth = 20            # Number of calls executed in one run
+  fail_on_revert = true
+  runs = 20
+  
 [rpc_endpoints]
 mainnet = "${MAINNET_RPC_URL}"
 

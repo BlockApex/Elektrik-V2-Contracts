@@ -13,7 +13,7 @@ contract GenerateCalldata {
         targetContract = _targetContract;
     }
 
-   function generateCalldata1() public view returns (bytes memory) {
+function generateCalldata1() public view returns (bytes memory) {
         // English: Only allow order execution if the return value from an arbitrary call is less than 15.
         // Predicate: lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
 
@@ -39,7 +39,7 @@ contract GenerateCalldata {
         return ltFnCalldata;
     }
 
-    function generateCalldata2() public view returns (bytes memory) {
+function generateCalldata2() public view returns (bytes memory) {
         // English: Allow order execution if the return value from an arbitrary call is either less than 15 or greater than 5.
         // First, check if it's less than 15. If it isn't, then check if it's greater than 5. Allow order execution if either condition is true; disallow otherwise.
         // Predicate: or(lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)), gt(5, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)))
@@ -118,88 +118,8 @@ contract GenerateCalldata {
         return orFnCalldata;
     }
 
-    function generateCalldataLt(uint256 x,uint256 y) public view returns (bytes memory) {
-        // English: Only allow order execution if the return value from an arbitrary call is less than 15.
-        // Predicate: lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
 
-        // Step 1: Generate calldata to send to our target contract
-
-        bytes memory targetContractCalldata = abi.encodeWithSignature(
-            "dummyFn(uint256)",
-            y
-        ); // 'callDataToSendToTargetAddress'
-
-        // Step 2: Generate predicates contract "arbitrary static call" function calldata
-        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
-            "arbitraryStaticCall(address,bytes)",
-            targetContract,
-            targetContractCalldata
-        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
-
-        // Step 3: Generate predicates contract "lt" function calldata
-        bytes memory ltFnCalldata = abi.encodeWithSignature(
-            "lt(uint256,bytes)",
-            x,
-            arbitraryStaticCalldata
-        ); // lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
-        return ltFnCalldata;
-    }
-
-    function generateCalldataGt(uint256 x,uint256 y) public view returns (bytes memory) {
-        // English: Only allow order execution if the return value from an arbitrary call is less than 15.
-        // Predicate: lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
-
-        // Step 1: Generate calldata to send to our target contract
-
-        bytes memory targetContractCalldata = abi.encodeWithSignature(
-            "dummyFn(uint256)",
-            y
-        ); // 'callDataToSendToTargetAddress'
-
-        // Step 2: Generate predicates contract "arbitrary static call" function calldata
-        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
-            "arbitraryStaticCall(address,bytes)",
-            targetContract,
-            targetContractCalldata
-        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
-
-        // Step 3: Generate predicates contract "lt" function calldata
-        bytes memory gtFnCalldata = abi.encodeWithSignature(
-            "gt(uint256,bytes)",
-            x,
-            arbitraryStaticCalldata
-        ); // lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
-        return gtFnCalldata;
-    }
-
-    function generateCalldataEq(uint256 x,uint256 y) public view returns (bytes memory) {
-        // English: Only allow order execution if the return value from an arbitrary call is less than 15.
-        // Predicate: lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
-
-        // Step 1: Generate calldata to send to our target contract
-
-        bytes memory targetContractCalldata = abi.encodeWithSignature(
-            "dummyFn(uint256)",
-            y
-        ); // 'callDataToSendToTargetAddress'
-
-        // Step 2: Generate predicates contract "arbitrary static call" function calldata
-        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
-            "arbitraryStaticCall(address,bytes)",
-            targetContract,
-            targetContractCalldata
-        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
-
-        // Step 3: Generate predicates contract "lt" function calldata
-        bytes memory eqFnCalldata = abi.encodeWithSignature(
-            "eq(uint256,bytes)",
-            x,
-            arbitraryStaticCalldata
-        ); // lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
-        return eqFnCalldata;
-    }
-
-    function generateCalldataAnd_lt_gt(uint256 value_1, uint256 target_value_1, uint256 value_2, uint256 target_value_2) public view returns (bytes memory) {
+function generateCalldataAnd_lt_gt(uint256 value_1, uint256 target_value_1, uint256 value_2, uint256 target_value_2) public view returns (bytes memory) {
         // English: Allow order execution if the return value from an arbitrary call is either less than 15 or greater than 5.
         // First, check if it's less than 15. If it isn't, then check if it's greater than 10. Allow order execution if either condition is true; disallow otherwise.
         // Predicate: and(lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)), gt(10, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)))
@@ -363,16 +283,39 @@ contract GenerateCalldata {
             jointPredicates
         );
         return orFnCalldata;
+}
+
+function generateCalldataNot() public view returns (bytes memory) {
+
+        
+
+        bytes memory targetContractCalldata = abi.encodeWithSignature(
+            "dummyBool()"
+        ); // 'callDataToSendToTargetAddress'
+        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            targetContract,
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+        bytes memory notFnCalldata = abi.encodeWithSignature(
+            "not(bytes)",
+            arbitraryStaticCalldata
+        ); 
+        return notFnCalldata;
     }
 
-     function generateCalldataNot() public view returns (bytes memory) {
+
+
+
+function generateCalldatadynamic(string memory operation, uint256 x,uint256 y) public view returns (bytes memory) {
         // English: Only allow order execution if the return value from an arbitrary call is less than 15.
         // Predicate: lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
 
         // Step 1: Generate calldata to send to our target contract
 
         bytes memory targetContractCalldata = abi.encodeWithSignature(
-            "dummyBool()"
+            "dummyFn(uint256)",
+            y
         ); // 'callDataToSendToTargetAddress'
 
         // Step 2: Generate predicates contract "arbitrary static call" function calldata
@@ -383,10 +326,15 @@ contract GenerateCalldata {
         ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
 
         // Step 3: Generate predicates contract "lt" function calldata
-        bytes memory notFnCalldata = abi.encodeWithSignature(
-            "not(bytes)",
-            arbitraryStaticCalldata
-        ); // lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
-        return notFnCalldata;
-    }
+
+        if (keccak256(bytes(operation)) == keccak256("lt")) {
+            return abi.encodeWithSignature("lt(uint256,bytes)", x, arbitraryStaticCalldata);
+        } else if (keccak256(bytes(operation)) == keccak256("gt")) {
+            return abi.encodeWithSignature("gt(uint256,bytes)", x, arbitraryStaticCalldata);
+        } else if (keccak256(bytes(operation)) == keccak256("eq")) {
+            return abi.encodeWithSignature("eq(uint256,bytes)", x, arbitraryStaticCalldata);
+        } else {
+            revert("Unsupported operation");
+        }
+}
 }
