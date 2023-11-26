@@ -275,6 +275,200 @@ contract AdvancedOrderEngineTest is Test {
         assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount);
     }
 
+    function testNoOrderInputFillOrders() public {
+        OrderEngine.Order memory buyOrder = getDummyBuyOrder();
+        OrderEngine.Order memory sellOrder = getDummySellOrder();
+        uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
+        uint beforeWethMaker2 = weth.balanceOf(maker2);
+        uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
+        uint beforeWethMaker1 = weth.balanceOf(maker1);
+
+        vm.startPrank(operator);
+
+        OrderEngine.Order[] memory orders = new OrderEngine.Order[](0);
+
+        // orders[0] = sellOrder;
+        // orders[1] = buyOrder;
+
+        uint256[] memory sell = new uint256[](2);
+
+        sell[0] = sellOrder.sellTokenAmount;
+        sell[1] = buyOrder.sellTokenAmount;
+
+        uint256[] memory buy = new uint256[](2);
+
+        buy[0] = sellOrder.buyTokenAmount;
+        buy[1] = buyOrder.buyTokenAmount;
+
+        bytes[] memory sigs = new bytes[](2);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        sigs[0] = sellOrderSignature;
+        sigs[1] = buyOrderSignature;
+
+        uint256[] memory emptyArray2 = new uint256[](0);
+        IERC20[] memory emptyArray1 = new IERC20[](0);
+
+        vm.expectRevert(EmptyArray.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            sigs,
+            '0x',
+            emptyArray1,
+            emptyArray2
+        );
+
+        vm.stopPrank();
+
+        uint afterUsdcMaker2 = usdc.balanceOf(maker2);
+        uint afterWethMaker2 = weth.balanceOf(maker2);
+        uint afterUsdcMaker1 = usdc.balanceOf(maker1);
+        uint afterWethMaker1 = weth.balanceOf(maker1);
+
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2);
+        assertEq(beforeWethMaker2, afterWethMaker2);
+        assertEq(beforeUsdcMaker1, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1);
+    }
+
+    function testInputLengthMismatchFillOrders() public {
+        OrderEngine.Order memory buyOrder = getDummyBuyOrder();
+        OrderEngine.Order memory sellOrder = getDummySellOrder();
+        uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
+        uint beforeWethMaker2 = weth.balanceOf(maker2);
+        uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
+        uint beforeWethMaker1 = weth.balanceOf(maker1);
+
+        vm.startPrank(operator);
+
+        OrderEngine.Order[] memory orders = new OrderEngine.Order[](1);
+
+        orders[0] = sellOrder;
+        // orders[1] = buyOrder;
+
+        uint256[] memory sell = new uint256[](2);
+
+        sell[0] = sellOrder.sellTokenAmount;
+        sell[1] = buyOrder.sellTokenAmount;
+
+        uint256[] memory buy = new uint256[](2);
+
+        buy[0] = sellOrder.buyTokenAmount;
+        buy[1] = buyOrder.buyTokenAmount;
+
+        bytes[] memory sigs = new bytes[](2);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        sigs[0] = sellOrderSignature;
+        sigs[1] = buyOrderSignature;
+
+        uint256[] memory emptyArray2 = new uint256[](0);
+        IERC20[] memory emptyArray1 = new IERC20[](0);
+
+        // if orderlength != sell order or buy order length
+        vm.expectRevert(ArraysLengthMismatch.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            sigs,
+            '0x',
+            emptyArray1,
+            emptyArray2
+        );
+
+        // if sell order != order || buy order || sig
+        orders = new OrderEngine.Order[](2);
+
+        orders[0] = sellOrder;
+        orders[1] = buyOrder;
+
+        sell = new uint256[](1);
+
+        sell[0] = sellOrder.sellTokenAmount;
+
+        vm.expectRevert(ArraysLengthMismatch.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            sigs,
+            '0x',
+            emptyArray1,
+            emptyArray2
+        );
+
+        // if buy order != sell order || order || sig
+        buy = new uint256[](1);
+
+        buy[0] = sellOrder.buyTokenAmount;
+        // buy[1] = buyOrder.buyTokenAmount;
+        
+        sell = new uint256[](2);
+
+        sell[0] = sellOrder.sellTokenAmount;
+        sell[1] = buyOrder.sellTokenAmount;
+
+        vm.expectRevert(ArraysLengthMismatch.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            sigs,
+            '0x',
+            emptyArray1,
+            emptyArray2
+        );
+
+        // if sig != buy order || sell order || sig
+        buy = new uint256[](2);
+
+        buy[0] = sellOrder.buyTokenAmount;
+        buy[1] = buyOrder.buyTokenAmount;
+        
+        sigs = new bytes[](1);
+
+        (v, r, s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        sellOrderSignature = abi.encodePacked(r, s, v);
+
+        sigs[0] = sellOrderSignature;
+
+        vm.expectRevert(ArraysLengthMismatch.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            sigs,
+            '0x',
+            emptyArray1,
+            emptyArray2
+        );
+
+        vm.stopPrank();
+
+        uint afterUsdcMaker2 = usdc.balanceOf(maker2);
+        uint afterWethMaker2 = weth.balanceOf(maker2);
+        uint afterUsdcMaker1 = usdc.balanceOf(maker1);
+        uint afterWethMaker1 = weth.balanceOf(maker1);
+
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2);
+        assertEq(beforeWethMaker2, afterWethMaker2);
+        assertEq(beforeUsdcMaker1, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1);
+    }
+
     function getDummyBuyOrder() private view returns(OrderEngine.Order memory) {
         return OrderEngine.Order(
             123, // Replace with the desired nonce value

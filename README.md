@@ -24,7 +24,7 @@ To run code in this repository, follow these steps:
 5. **Run unit tests:**
    ```bash
    source .env
-   forge test -vvv --rpc-url $MAINNET_RPC_URL --match-contract AdvancedOrderEngineTest
+   forge test -vvv --rpc-url $MAINNET_RPC_URL --match-path test/AdvancedOrderEngine.t.sol
    ```
 
 6. **Run deploy and setup script**
