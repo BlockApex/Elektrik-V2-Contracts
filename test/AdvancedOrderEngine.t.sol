@@ -589,6 +589,88 @@ contract AdvancedOrderEngineTest is Test {
         assertEq(beforeWethMaker1 , afterWethMaker1);
     }
 
+    function testPartiallyFillableOrder() public {
+        uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
+        uint beforeWethMaker2 = weth.balanceOf(maker2);
+        uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
+        uint beforeWethMaker1 = weth.balanceOf(maker1);
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        sell[0] = sellOrder.sellTokenAmount / 2;
+        sell[1] = buyOrder.sellTokenAmount / 2;
+        buy[0] = sellOrder.buyTokenAmount / 2;
+        buy[1] = buyOrder.buyTokenAmount / 2;
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+
+        uint afterUsdcMaker2 = usdc.balanceOf(maker2);
+        uint afterWethMaker2 = weth.balanceOf(maker2);
+        uint afterUsdcMaker1 = usdc.balanceOf(maker1);
+        uint afterWethMaker1 = weth.balanceOf(maker1);
+
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.sellTokenAmount / 2);
+        assertEq(beforeWethMaker2 + sellOrder.buyTokenAmount / 2, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buyOrder.buyTokenAmount / 2, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount / 2);
+    }
+
+    function testPartiallyFillableOrderFail() public {
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,,
+        ) = getStandardInput();
+
+        sell[0] = 8 * 10 ** 6;
+        sell[1] = 0.0022 * 10 ** 18;
+
+        buy[0] = 0.0022 * 10 ** 18;
+        buy[1] = 8 * 10 ** 6;
+
+        vm.expectRevert(LimitPriceNotRespected.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
     function getDummyBuyOrder() private view returns(OrderEngine.Order memory) {
         return OrderEngine.Order(
             123, // Replace with the desired nonce value
@@ -613,8 +695,8 @@ contract AdvancedOrderEngineTest is Test {
         return OrderEngine.Order(
             124, // Replace with the desired nonce value
             block.timestamp + 3600, // Replace with the desired validTill timestamp
-            10000000, // 10 USDC
-            4800000000000000, // 0.0048 weth
+            10000000, // 10 USDC - sell token amount
+            4800000000000000, // 0.0048 weth - buy token amount
             0, // No fee
             maker2, // Maker's Ethereum address
             operator, // Taker's Ethereum address (or null for public order)
