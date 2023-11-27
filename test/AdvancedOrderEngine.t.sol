@@ -10,6 +10,7 @@ import "./../src/libraries/OrderEngine.sol";
 import "./../src/Helper/GenerateCalldata.sol";
 import "./interfaces/swaprouter.sol";
 import "./interfaces/weth9.sol";
+import "./interfaces/pricefeed.sol";
 import "openzeppelin/token/ERC20/IERC20.sol";
 import "openzeppelin/utils/cryptography/ECDSA.sol";
 
@@ -21,6 +22,7 @@ contract AdvancedOrderEngineTest is Test {
     IERC20 usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     IERC20 weth = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
     ISwapRouter02 swapRouter02 = ISwapRouter02(0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45);
+    IPriceFeed usdc_eth = IPriceFeed(0x986b5E1e1755e3C2440e960477f25201B0a8bbD4);
     address zeroAddress = address(0);
     address feeCollector = address(147578);
     address admin = address(3);
@@ -776,6 +778,138 @@ contract AdvancedOrderEngineTest is Test {
         vm.stopPrank();
     }
 
+    function testPredicateFail() public {
+
+
+        // English: Only allow order execution if the return value from an arbitrary call is greater than some contraint.
+        // Predicate: gt(constraint(99999 * 10 ** 18), arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Step 1: Generate calldata to send to our target contract
+        bytes memory targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        ); // 'callDataToSendToTargetAddress'
+
+        // Step 2: Generate predicates contract "arbitrary static call" function calldata
+        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 3: Generate predicates contract "lt" function calldata
+        bytes memory ltFnCalldata = abi.encodeWithSignature(
+            "gt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        ); // lt(15, arbitraryS
+        // generateCalldata1
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        orders[0].predicateCalldata = ltFnCalldata;
+        orders[1].predicateCalldata = ltFnCalldata;
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        signatures[0] = sellOrderSignature;
+        signatures[1] = buyOrderSignature;
+
+        vm.expectRevert(PredicateIsNotTrue.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
+    function testPredicate() public {
+
+
+        // English: Only allow order execution if the return value from an arbitrary call is greater than some contraint.
+        // Predicate: gt(constraint(99999 * 10 ** 18), arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Step 1: Generate calldata to send to our target contract
+        bytes memory targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        ); // 'callDataToSendToTargetAddress'
+
+        // Step 2: Generate predicates contract "arbitrary static call" function calldata
+        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 3: Generate predicates contract "lt" function calldata
+        bytes memory ltFnCalldata = abi.encodeWithSignature(
+            "lt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        ); // lt(15, arbitraryS
+        // generateCalldata1
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        orders[0].predicateCalldata = ltFnCalldata;
+        orders[1].predicateCalldata = ltFnCalldata;
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        signatures[0] = sellOrderSignature;
+        signatures[1] = buyOrderSignature;
+
+        vm.expectRevert(PredicateIsNotTrue.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
     function getDummyBuyOrder() private view returns(OrderEngine.Order memory) {
         return OrderEngine.Order(
             123, // nonce value
@@ -864,6 +998,10 @@ contract AdvancedOrderEngineTest is Test {
 
     function _hashTypedDataV4(bytes32 structHash) internal view virtual returns (bytes32) {
         return ECDSA.toTypedDataHash(advancedOrderEngine.DOMAIN_SEPARATOR(), structHash);
+    }
+
+    function _oraclePrice() internal view virtual returns (uint256) {
+        return 99999 ether;
     }
 
 }
