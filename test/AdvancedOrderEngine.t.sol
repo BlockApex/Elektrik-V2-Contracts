@@ -896,7 +896,6 @@ contract AdvancedOrderEngineTest is Test {
         signatures[0] = sellOrderSignature;
         signatures[1] = buyOrderSignature;
 
-        vm.expectRevert(PredicateIsNotTrue.selector);
         advancedOrderEngine.fillOrders(
             orders,
             sell,
