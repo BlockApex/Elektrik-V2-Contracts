@@ -671,43 +671,113 @@ contract AdvancedOrderEngineTest is Test {
         vm.stopPrank();
     }
 
+    function testInvalidSignature() public {
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,,
+        ) = getStandardInput();
+
+        bytes memory temp = signatures[0];
+        signatures[0] = signatures[1];
+        signatures[1] = temp;
+        
+        vm.expectRevert(InvalidSignature.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
+    function testFillOrKillFail() public {
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        sell[0] = sellOrder.sellTokenAmount / 2;
+        sell[1] = buyOrder.sellTokenAmount / 2;
+        buy[0] = sellOrder.buyTokenAmount / 2;
+        buy[1] = buyOrder.buyTokenAmount / 2;
+
+        orders[0].isPartiallyFillable = false;
+        orders[1].isPartiallyFillable = false;
+        
+        vm.expectRevert(LimitPriceNotRespected.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
     function getDummyBuyOrder() private view returns(OrderEngine.Order memory) {
         return OrderEngine.Order(
-            123, // Replace with the desired nonce value
-            block.timestamp + 3600, // Replace with the desired validTill timestamp
-            4800000000000000, // 0.0048 weth
-            10000000, // 10 USDC
-            0, // No fee
-            maker1, // Maker's Ethereum address
+            123, // nonce value
+            block.timestamp + 3600, // valid till
+            4800000000000000, // 0.0048 weth - sell token
+            10000000, // 10 USDC - buy amount
+            0, // fee
+            maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
-            weth, // MATIC token address
-            usdc, // USDC token address
-            true, // Replace with true or false depending on whether the order is partially fillable
-            "0x", // Replace with any extra data as a hexadecimal string
-            "", // Replace with predicate calldata as a hexadecimal string
-            "0x", // Replace with pre-interaction data as a hexadecimal string
-            "0x" // Replace with post-interaction data as a hexadecimal string
+            weth, // MATIC token address - sell token
+            usdc, // USDC token address - buy token
+            true, // is partially fillable
+            "0x", // facilitator call data 
+            "", // predicate calldata 
+            "0x", // pre-interaction data 
+            "0x" // post-interaction data 
         );
     }
 
     function getDummySellOrder() private view returns(OrderEngine.Order memory) {
         return OrderEngine.Order(
-            124, // Replace with the desired nonce value
-            block.timestamp + 3600, // Replace with the desired validTill timestamp
+            124, // nonce value
+            block.timestamp + 3600, // valid till
             10000000, // 10 USDC - sell token amount
             4800000000000000, // 0.0048 weth - buy token amount
-            0, // No fee
-            maker2, // Maker's Ethereum address
+            0, // fee
+            maker2, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker2, // Recipient's Ethereum address
-            usdc, // USDC token address
-            weth, // MATIC token address
-            true, // Replace with true or false depending on whether the order is partially fillable
-            "0x", // Replace with any extra data as a hexadecimal string
-            "", // Replace with predicate calldata as a hexadecimal string
-            "0x", // Replace with pre-interaction data as a hexadecimal string
-            "0x" // Replace with post-interaction data as a hexadecimal string
+            usdc, // USDC token address - sell token
+            weth, // MATIC token address - buy token
+            true, // is partially fillable
+            "0x", // facilitator calldata 
+            "", // predicate calldata 
+            "0x", // pre-interaction data 
+            "0x" // post-interaction data 
         );
     }
 
