@@ -5,7 +5,7 @@ import "forge-std/Script.sol";
 import "../src/AdvancedOrderEngine.sol";
 import "../src/Predicates.sol";
 
-contract MigratorScript is Script {
+contract TransactionScript is Script {
     Predicates predicates = Predicates(0xF290FF9ED61cB43F96D3F374474f05810d505430);
     AdvancedOrderEngine advancedOrderEngine = AdvancedOrderEngine(0xDaC771732B2211e2d2c691DC95f9Cf75A61a5974);
     uint256 ownerPrivateKey = vm.envUint("LIVE_MAKER1");

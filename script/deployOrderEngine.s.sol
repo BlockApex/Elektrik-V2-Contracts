@@ -5,7 +5,7 @@ import "forge-std/Script.sol";
 import "../src/AdvancedOrderEngine.sol";
 import "../src/Predicates.sol";
 
-contract MigratorScript is Script {
+contract DeployScript is Script {
     function run() external {
         AdvancedOrderEngine advancedOrderEngine;
         Predicates predicates;
