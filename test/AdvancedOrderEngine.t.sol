@@ -214,8 +214,6 @@ contract AdvancedOrderEngineTest is Test {
     }
 
     function testFillOrders() public {
-        OrderEngine.Order memory buyOrder = getDummyBuyOrder();
-        OrderEngine.Order memory sellOrder = getDummySellOrder();
         uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
         uint beforeWethMaker2 = weth.balanceOf(maker2);
         uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
@@ -223,43 +221,26 @@ contract AdvancedOrderEngineTest is Test {
 
         vm.startPrank(operator);
 
-        OrderEngine.Order[] memory orders = new OrderEngine.Order[](2);
-
-        orders[0] = sellOrder;
-        orders[1] = buyOrder;
-
-        uint256[] memory sell = new uint256[](2);
-
-        sell[0] = sellOrder.sellTokenAmount;
-        sell[1] = buyOrder.sellTokenAmount;
-
-        uint256[] memory buy = new uint256[](2);
-
-        buy[0] = sellOrder.buyTokenAmount;
-        buy[1] = buyOrder.buyTokenAmount;
-
-        bytes[] memory sigs = new bytes[](2);
-
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
-        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
-
-        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
-        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
-
-        sigs[0] = sellOrderSignature;
-        sigs[1] = buyOrderSignature;
-
-        uint256[] memory emptyArray2 = new uint256[](0);
-        IERC20[] memory emptyArray1 = new IERC20[](0);
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
 
         advancedOrderEngine.fillOrders(
             orders,
             sell,
             buy,
-            sigs,
-            '0x',
-            emptyArray1,
-            emptyArray2
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
         );
 
         vm.stopPrank();
@@ -276,8 +257,6 @@ contract AdvancedOrderEngineTest is Test {
     }
 
     function testNoOrderInputFillOrders() public {
-        OrderEngine.Order memory buyOrder = getDummyBuyOrder();
-        OrderEngine.Order memory sellOrder = getDummySellOrder();
         uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
         uint beforeWethMaker2 = weth.balanceOf(maker2);
         uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
@@ -285,44 +264,27 @@ contract AdvancedOrderEngineTest is Test {
 
         vm.startPrank(operator);
 
-        OrderEngine.Order[] memory orders = new OrderEngine.Order[](0);
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,,
+        ) = getStandardInput();
 
-        // orders[0] = sellOrder;
-        // orders[1] = buyOrder;
-
-        uint256[] memory sell = new uint256[](2);
-
-        sell[0] = sellOrder.sellTokenAmount;
-        sell[1] = buyOrder.sellTokenAmount;
-
-        uint256[] memory buy = new uint256[](2);
-
-        buy[0] = sellOrder.buyTokenAmount;
-        buy[1] = buyOrder.buyTokenAmount;
-
-        bytes[] memory sigs = new bytes[](2);
-
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
-        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
-
-        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
-        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
-
-        sigs[0] = sellOrderSignature;
-        sigs[1] = buyOrderSignature;
-
-        uint256[] memory emptyArray2 = new uint256[](0);
-        IERC20[] memory emptyArray1 = new IERC20[](0);
+        orders = new OrderEngine.Order[](0);
 
         vm.expectRevert(EmptyArray.selector);
         advancedOrderEngine.fillOrders(
             orders,
             sell,
             buy,
-            sigs,
-            '0x',
-            emptyArray1,
-            emptyArray2
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
         );
 
         vm.stopPrank();
@@ -339,8 +301,6 @@ contract AdvancedOrderEngineTest is Test {
     }
 
     function testInputLengthMismatchFillOrders() public {
-        OrderEngine.Order memory buyOrder = getDummyBuyOrder();
-        OrderEngine.Order memory sellOrder = getDummySellOrder();
         uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
         uint beforeWethMaker2 = weth.balanceOf(maker2);
         uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
@@ -348,34 +308,21 @@ contract AdvancedOrderEngineTest is Test {
 
         vm.startPrank(operator);
 
-        OrderEngine.Order[] memory orders = new OrderEngine.Order[](1);
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        orders = new OrderEngine.Order[](1);
 
         orders[0] = sellOrder;
-        // orders[1] = buyOrder;
-
-        uint256[] memory sell = new uint256[](2);
-
-        sell[0] = sellOrder.sellTokenAmount;
-        sell[1] = buyOrder.sellTokenAmount;
-
-        uint256[] memory buy = new uint256[](2);
-
-        buy[0] = sellOrder.buyTokenAmount;
-        buy[1] = buyOrder.buyTokenAmount;
-
-        bytes[] memory sigs = new bytes[](2);
-
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
-        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
-
-        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
-        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
-
-        sigs[0] = sellOrderSignature;
-        sigs[1] = buyOrderSignature;
-
-        uint256[] memory emptyArray2 = new uint256[](0);
-        IERC20[] memory emptyArray1 = new IERC20[](0);
 
         // if orderlength != sell order or buy order length
         vm.expectRevert(ArraysLengthMismatch.selector);
@@ -383,10 +330,10 @@ contract AdvancedOrderEngineTest is Test {
             orders,
             sell,
             buy,
-            sigs,
-            '0x',
-            emptyArray1,
-            emptyArray2
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
         );
 
         // if sell order != order || buy order || sig
@@ -404,10 +351,10 @@ contract AdvancedOrderEngineTest is Test {
             orders,
             sell,
             buy,
-            sigs,
-            '0x',
-            emptyArray1,
-            emptyArray2
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
         );
 
         // if buy order != sell order || order || sig
@@ -426,10 +373,10 @@ contract AdvancedOrderEngineTest is Test {
             orders,
             sell,
             buy,
-            sigs,
-            '0x',
-            emptyArray1,
-            emptyArray2
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
         );
 
         // if sig != buy order || sell order || sig
@@ -438,22 +385,22 @@ contract AdvancedOrderEngineTest is Test {
         buy[0] = sellOrder.buyTokenAmount;
         buy[1] = buyOrder.buyTokenAmount;
         
-        sigs = new bytes[](1);
+        signatures = new bytes[](1);
 
-        (v, r, s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
-        sellOrderSignature = abi.encodePacked(r, s, v);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
 
-        sigs[0] = sellOrderSignature;
+        signatures[0] = sellOrderSignature;
 
         vm.expectRevert(ArraysLengthMismatch.selector);
         advancedOrderEngine.fillOrders(
             orders,
             sell,
             buy,
-            sigs,
-            '0x',
-            emptyArray1,
-            emptyArray2
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
         );
 
         vm.stopPrank();
@@ -507,6 +454,52 @@ contract AdvancedOrderEngineTest is Test {
             "0x", // Replace with pre-interaction data as a hexadecimal string
             "0x" // Replace with post-interaction data as a hexadecimal string
         );
+    }
+
+    function getStandardInput() private view returns(
+        OrderEngine.Order[] memory orders,
+        uint256[] memory sell,
+        uint256[] memory buy,
+        bytes[] memory signatures,
+        bytes memory facilitatorInteraction,
+        IERC20[] memory borrowedTokens,
+        uint256[] memory borrowedAmounts,
+        OrderEngine.Order memory buyOrder,
+        OrderEngine.Order memory sellOrder
+    ) {
+
+        buyOrder = getDummyBuyOrder();
+        sellOrder = getDummySellOrder();
+
+        orders = new OrderEngine.Order[](2);
+
+        orders[0] = sellOrder;
+        orders[1] = buyOrder;
+
+        sell = new uint256[](2);
+
+        sell[0] = sellOrder.sellTokenAmount;
+        sell[1] = buyOrder.sellTokenAmount;
+
+        buy = new uint256[](2);
+
+        buy[0] = sellOrder.buyTokenAmount;
+        buy[1] = buyOrder.buyTokenAmount;
+
+        signatures = new bytes[](2);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        signatures[0] = sellOrderSignature;
+        signatures[1] = buyOrderSignature;
+
+        facilitatorInteraction = "0x";
+        borrowedAmounts = new uint256[](0);
+        borrowedTokens = new IERC20[](0);
     }
 
     function _hashTypedDataV4(bytes32 structHash) internal view virtual returns (bytes32) {
