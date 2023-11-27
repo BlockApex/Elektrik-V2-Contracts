@@ -31,5 +31,8 @@ To run code in this repository, follow these steps:
    ```bash
    source .env
    forge script script/deployOrderEngine.s.sol --rpc-url $PEGASUS_RPC_URL --legacy --broadcast
+
+   # deploy and verify
+   forge script script/deployOrderEngine.s.sol --rpc-url $PEGASUS_RPC_URL --broadcast -vvv --legacy --verify --verifier blockscout --verifier-url https://pegasus.lightlink.io/api/? --watch
    ```
 
