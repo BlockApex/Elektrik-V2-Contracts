@@ -637,6 +637,41 @@ contract AdvancedOrderEngineTest is Test {
         assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount / 2);
     }
 
+    function testExceedsOrderSellAmount() public {
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        sell[0] = sellOrder.sellTokenAmount * 2;
+        sell[1] = buyOrder.sellTokenAmount * 2;
+        buy[0] = sellOrder.buyTokenAmount * 2;
+        buy[1] = buyOrder.buyTokenAmount * 2;
+
+        vm.expectRevert(ExceedsOrderSellAmount.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
     function testPartiallyFillableOrderFail() public {
 
         vm.startPrank(operator);
