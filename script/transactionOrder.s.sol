@@ -8,11 +8,11 @@ import "../src/Predicates.sol";
 contract MigratorScript is Script {
     Predicates predicates = Predicates(0xF290FF9ED61cB43F96D3F374474f05810d505430);
     AdvancedOrderEngine advancedOrderEngine = AdvancedOrderEngine(0xDaC771732B2211e2d2c691DC95f9Cf75A61a5974);
-    uint256 ownerPrivateKey = 0xfaf0f9ee23d7bc40a0cbe59f343d66e7f47cf333826b757dc8ae6d13a26aaacc;
+    uint256 ownerPrivateKey = vm.envUint("LIVE_MAKER1");
     address owner = vm.addr(ownerPrivateKey);
-    uint256 maker1PrivateKey = 0x05330e3506561033ca68a39c73cf8b4ce3c929e2773800c80c2da83a781aaa4c ; //also owner of contract
+    uint256 maker1PrivateKey = vm.envUint("LIVE_MAKER1");
     address maker1 = vm.addr(maker1PrivateKey);
-    uint256 maker2PrivateKey = 0x66a23653c7a7f9c068cd2f1155fd7b02e637e58f9d350890eb7864d1f4c43687; //also owner of contract
+    uint256 maker2PrivateKey = vm.envUint("LIVE_MAKER2");
     address maker2 = vm.addr(maker2PrivateKey);
     IERC20 usdc = IERC20(0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4); 
     IERC20 wmatic = IERC20(0x8bA5b0452b0a4da211579AA2e105c3da7C0Ad36c); 

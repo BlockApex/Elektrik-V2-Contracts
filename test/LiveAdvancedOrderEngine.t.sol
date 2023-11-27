@@ -34,9 +34,9 @@ contract LiveAdvancedOrderEngineTest is Test {
     address owner = vm.addr(ownerPrivateKey);
     address feeCollector = owner;
     address admin = owner;
-    uint256 maker1PrivateKey = 0x05330e3506561033ca68a39c73cf8b4ce3c929e2773800c80c2da83a781aaa4c ; //also owner of contract
+    uint256 maker1PrivateKey = vm.envUint("LIVE_MAKER1");
     address maker1 = vm.addr(maker1PrivateKey);
-    uint256 maker2PrivateKey = 0x66a23653c7a7f9c068cd2f1155fd7b02e637e58f9d350890eb7864d1f4c43687; //also owner of contract
+    uint256 maker2PrivateKey = vm.envUint("LIVE_MAKER2");
     address maker2 = vm.addr(maker2PrivateKey);
     uint256 operatorPrivateKey = 0xB0B; 
     address operator = owner;
