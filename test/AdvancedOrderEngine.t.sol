@@ -1086,6 +1086,74 @@ contract AdvancedOrderEngineTest is Test {
         assertEq(beforeWethMaker3 , afterWethMaker3 + order3.sellTokenAmount);
     }
 
+    function testCancelOrders() public {
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+        ) = getStandardInput();
+
+        vm.prank(maker1);
+        advancedOrderEngine.cancelOrder(buyOrder);
+
+        vm.startPrank(operator);
+        vm.expectRevert(OrderFilledAlready.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
+    function testCancelOrdersFail() public {
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+        ) = getStandardInput();
+
+        vm.startPrank(operator);
+
+        vm.expectRevert(AccessDenied.selector);
+        advancedOrderEngine.cancelOrder(buyOrder);
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+
+        );
+        vm.stopPrank();
+
+        vm.startPrank(maker1);
+
+        vm.expectRevert(OrderFilledAlready.selector);
+        advancedOrderEngine.cancelOrder(buyOrder);
+        vm.stopPrank();
+    }
+
     // function testSingleOrder() public {
     //     // uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
     //     // uint beforeWethMaker2 = weth.balanceOf(maker2);
@@ -1226,34 +1294,34 @@ contract AdvancedOrderEngineTest is Test {
         bytes memory facilitatorInteraction,
         IERC20[] memory borrowedTokens,
         uint256[] memory borrowedAmounts,
-        OrderEngine.Order memory buyOrder,
-        OrderEngine.Order memory sellOrder
+        OrderEngine.Order memory order1,
+        OrderEngine.Order memory order2
     ) {
 
-        buyOrder = getOrder1();
-        sellOrder = getOrder2();
+        order1 = getOrder1();
+        order2 = getOrder2();
 
         orders = new OrderEngine.Order[](2);
 
-        orders[0] = sellOrder;
-        orders[1] = buyOrder;
+        orders[0] = order2;
+        orders[1] = order1;
 
         sell = new uint256[](2);
 
-        sell[0] = sellOrder.sellTokenAmount;
-        sell[1] = buyOrder.sellTokenAmount;
+        sell[0] = order2.sellTokenAmount;
+        sell[1] = order1.sellTokenAmount;
 
         buy = new uint256[](2);
 
-        buy[0] = sellOrder.buyTokenAmount;
-        buy[1] = buyOrder.buyTokenAmount;
+        buy[0] = order2.buyTokenAmount;
+        buy[1] = order1.buyTokenAmount;
 
         signatures = new bytes[](2);
 
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(order2)));
         bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
 
-        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(order1)));
         bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
 
         signatures[0] = sellOrderSignature;
