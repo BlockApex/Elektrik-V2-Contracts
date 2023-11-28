@@ -1002,8 +1002,8 @@ contract AdvancedOrderEngineTest is Test {
             0
         );
 
-        bytes memory data = bytes.concat(
-            abi.encodePacked(swapRouter02),
+        bytes memory data = abi.encodePacked(
+            address(swapRouter02),
             abi.encodeWithSelector(
                 swapRouter02.exactInputSingle.selector,
                 ISwapRouter02.ExactInputSingleParams (
@@ -1017,21 +1017,8 @@ contract AdvancedOrderEngineTest is Test {
                 )
             )
         );
-        // abi.encodePacked(
-        //     address(swapRouter02),
-        //     abi.encodeWithSelector(
-        //         swapRouter02.exactInputSingle.selector,
-        //         ISwapRouter02.ExactInputSingleParams (
-        //             address(usdc),
-        //             address(weth),
-        //             500,
-        //             maker1,
-        //             amountIn,
-        //             0,
-        //             0
-        //         )
-        //     )
-        // );
+
+        console2.logBytes(data);
 
         sellOrder.preInteraction = data;
         sellOrder.buyTokenAmount = amountIn;
