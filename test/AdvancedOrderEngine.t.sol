@@ -1028,6 +1028,62 @@ contract AdvancedOrderEngineTest is Test {
         vm.stopPrank();
     }
 
+    function testDrainERC20() public {
+
+        uint balanceBefore = usdc.balanceOf(address(33));
+        vm.deal(address(advancedOrderEngine), 2 ether);
+        vm.prank(address(advancedOrderEngine));
+        weth.deposit{value: 1 ether}();
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory order1,,
+        ) = getStandardInput1();
+
+        bytes memory data = abi.encodeWithSelector(
+            usdc.transfer.selector,
+            address(33),
+            1 * 10 ** 6
+        );
+
+        orders[2].preInteraction = abi.encodePacked(
+            address(usdc),
+            data
+        );
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(order1)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        // (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        // bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        signatures[2] = sellOrderSignature;
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        uint balanceAfter = usdc.balanceOf(address(33));
+
+        assertEq(balanceBefore + 1 * 10 ** 6, balanceAfter);
+
+        vm.stopPrank();
+    }
+
     function testAsymetricFillOrders() public {
         uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
         uint beforeWethMaker2 = weth.balanceOf(maker2);
@@ -1214,7 +1270,7 @@ contract AdvancedOrderEngineTest is Test {
 
     //     signatures = new bytes[](1);
 
-    //     (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+    //     (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
     //     bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
 
     //     signatures[0] = sellOrderSignature;
