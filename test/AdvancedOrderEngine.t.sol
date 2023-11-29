@@ -993,6 +993,721 @@ contract AdvancedOrderEngineTest is Test {
         vm.stopPrank();
     }
 
+    function testMultiplePredicateOR() public {
+
+        uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
+        uint beforeWethMaker2 = weth.balanceOf(maker2);
+        uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
+        uint beforeWethMaker1 = weth.balanceOf(maker1);
+
+        // English: Only allow order execution if the return value from an arbitrary call is greater than some contraint.
+        // Predicate: gt(constraint(99999 * 10 ** 18), arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Step 1: Generate calldata to send to our target contract
+        bytes memory targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        ); // 'callDataToSendToTargetAddress'
+
+        // Step 2: Generate predicates contract "arbitrary static call" function calldata
+        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 3: Generate predicates contract "lt" function calldata
+        bytes memory ltFnCalldata = abi.encodeWithSignature(
+            "lt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        ); // lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Helpful in generating bytes offset (see below)
+        uint256 ltCalldataLength = bytes(ltFnCalldata).length;
+        // console.log("LT Calldata length1 ", ltCalldataLength);
+
+        // Step 4: Generate calldata to send to our target contract (for GT)
+        targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        );
+
+        // Step 5: Generate predicates contract "arbitrary static call" function calldata (for GT)
+        arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 6: Generate predicates contract "gt" function calldata
+        // 18 > 5
+        bytes memory gtFnCalldata = abi.encodeWithSignature(
+            "gt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        );
+
+        // Helpful in generating bytes offset (see below)
+        uint256 gtCalldataLength = bytes(gtFnCalldata).length;
+        // console.log("GT Calldata length ", gtCalldataLength);
+
+        // Step 7: generate 'offset' param value of 'or' fn of predicates contract
+
+        // Generationg offset, required by 'or' fn of predicates contract
+        // We have two predicates, length of both predicates in 260, so first predicate offset would be 260 and second would be "firstPredicateLength + 260 = 520"
+        bytes memory offsetBytes = abi.encodePacked(uint32(ltCalldataLength + gtCalldataLength), uint32(ltCalldataLength));
+
+        // 'or' fn expects offset in uint256, so padding 0s
+        for (uint256 i = (32 - offsetBytes.length) / 4; i > 0; i--) {
+            offsetBytes = abi.encodePacked(uint32(0), offsetBytes);
+        }
+        uint256 offset = uint256(bytes32(offsetBytes));
+
+        // Step 8: combine both 'lt' and 'gt' predicates
+        bytes memory jointPredicates = abi.encodePacked(
+            bytes(ltFnCalldata),
+            bytes(gtFnCalldata)
+        );
+
+        // Step 9: Generating 'or' fn calldata
+        bytes memory orFnCalldata = abi.encodeWithSignature(
+            "or(uint256,bytes)",
+            offset,
+            jointPredicates
+        );
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        orders[0].predicateCalldata = orFnCalldata;
+        orders[1].predicateCalldata = orFnCalldata;
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        signatures[0] = sellOrderSignature;
+        signatures[1] = buyOrderSignature;
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+
+        uint afterUsdcMaker2 = usdc.balanceOf(maker2);
+        uint afterWethMaker2 = weth.balanceOf(maker2);
+        uint afterUsdcMaker1 = usdc.balanceOf(maker1);
+        uint afterWethMaker1 = weth.balanceOf(maker1);
+
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.sellTokenAmount);
+        assertEq(beforeWethMaker2 + sellOrder.buyTokenAmount, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buyOrder.buyTokenAmount, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount);
+    }
+
+
+    function testMultiplePredicateOR1() public {
+
+        // English: Only allow order execution if the return value from an arbitrary call is greater than some contraint.
+        // Predicate: gt(constraint(99999 * 10 ** 18), arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Step 1: Generate calldata to send to our target contract
+        bytes memory targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        ); // 'callDataToSendToTargetAddress'
+
+        // Step 2: Generate predicates contract "arbitrary static call" function calldata
+        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 3: Generate predicates contract "lt" function calldata
+        bytes memory ltFnCalldata = abi.encodeWithSignature(
+            "lt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        ); // lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Helpful in generating bytes offset (see below)
+        uint256 ltCalldataLength = bytes(ltFnCalldata).length;
+        // console.log("LT Calldata length1 ", ltCalldataLength);
+
+        // Step 4: Generate calldata to send to our target contract (for GT)
+        targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        );
+
+        // Step 5: Generate predicates contract "arbitrary static call" function calldata (for GT)
+        arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 6: Generate predicates contract "gt" function calldata
+        // 18 > 5
+        bytes memory ltFnCalldata1 = abi.encodeWithSignature(
+            "lt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        );
+
+        // Helpful in generating bytes offset (see below)
+        uint256 ltCalldataLength1 = bytes(ltFnCalldata1).length;
+        // console.log("GT Calldata length ", gtCalldataLength);
+
+        // Step 7: generate 'offset' param value of 'or' fn of predicates contract
+
+        // Generationg offset, required by 'or' fn of predicates contract
+        // We have two predicates, length of both predicates in 260, so first predicate offset would be 260 and second would be "firstPredicateLength + 260 = 520"
+        bytes memory offsetBytes = abi.encodePacked(uint32(ltCalldataLength + ltCalldataLength1), uint32(ltCalldataLength));
+
+        // 'or' fn expects offset in uint256, so padding 0s
+        for (uint256 i = (32 - offsetBytes.length) / 4; i > 0; i--) {
+            offsetBytes = abi.encodePacked(uint32(0), offsetBytes);
+        }
+        uint256 offset = uint256(bytes32(offsetBytes));
+
+        // Step 8: combine both 'lt' and 'gt' predicates
+        bytes memory jointPredicates = abi.encodePacked(
+            bytes(ltFnCalldata),
+            bytes(ltFnCalldata1)
+        );
+
+        // Step 9: Generating 'or' fn calldata
+        bytes memory orFnCalldata = abi.encodeWithSignature(
+            "or(uint256,bytes)",
+            offset,
+            jointPredicates
+        );
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        orders[0].predicateCalldata = orFnCalldata;
+        orders[1].predicateCalldata = orFnCalldata;
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        signatures[0] = sellOrderSignature;
+        signatures[1] = buyOrderSignature;
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
+    function testMultiplePredicateORFail() public {
+
+        // English: Only allow order execution if the return value from an arbitrary call is greater than some contraint.
+        // Predicate: gt(constraint(99999 * 10 ** 18), arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Step 1: Generate calldata to send to our target contract
+        bytes memory targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        ); // 'callDataToSendToTargetAddress'
+
+        // Step 2: Generate predicates contract "arbitrary static call" function calldata
+        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 3: Generate predicates contract "lt" function calldata
+        bytes memory gtFnCalldata1 = abi.encodeWithSignature(
+            "gt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        ); // lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Helpful in generating bytes offset (see below)
+        uint256 gtCalldataLength1 = bytes(gtFnCalldata1).length;
+        // console.log("LT Calldata length1 ", ltCalldataLength);
+
+        // Step 4: Generate calldata to send to our target contract (for GT)
+        targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        );
+
+        // Step 5: Generate predicates contract "arbitrary static call" function calldata (for GT)
+        arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 6: Generate predicates contract "gt" function calldata
+        // 18 > 5
+        bytes memory gtFnCalldata = abi.encodeWithSignature(
+            "gt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        );
+
+        // Helpful in generating bytes offset (see below)
+        uint256 gtCalldataLength = bytes(gtFnCalldata).length;
+        // console.log("GT Calldata length ", gtCalldataLength);
+
+        // Step 7: generate 'offset' param value of 'or' fn of predicates contract
+
+        // Generationg offset, required by 'or' fn of predicates contract
+        // We have two predicates, length of both predicates in 260, so first predicate offset would be 260 and second would be "firstPredicateLength + 260 = 520"
+        bytes memory offsetBytes = abi.encodePacked(uint32(gtCalldataLength1 + gtCalldataLength), uint32(gtCalldataLength1));
+
+        // 'or' fn expects offset in uint256, so padding 0s
+        for (uint256 i = (32 - offsetBytes.length) / 4; i > 0; i--) {
+            offsetBytes = abi.encodePacked(uint32(0), offsetBytes);
+        }
+        uint256 offset = uint256(bytes32(offsetBytes));
+
+        // Step 8: combine both 'lt' and 'gt' predicates
+        bytes memory jointPredicates = abi.encodePacked(
+            bytes(gtFnCalldata1),
+            bytes(gtFnCalldata)
+        );
+
+        // Step 9: Generating 'or' fn calldata
+        bytes memory orFnCalldata = abi.encodeWithSignature(
+            "or(uint256,bytes)",
+            offset,
+            jointPredicates
+        );
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        orders[0].predicateCalldata = orFnCalldata;
+        orders[1].predicateCalldata = orFnCalldata;
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        signatures[0] = sellOrderSignature;
+        signatures[1] = buyOrderSignature;
+
+        vm.expectRevert(PredicateIsNotTrue.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
+    function testMultiplePredicateANDFail() public {
+
+        // English: Only allow order execution if the return value from an arbitrary call is greater than some contraint.
+        // Predicate: gt(constraint(99999 * 10 ** 18), arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Step 1: Generate calldata to send to our target contract
+        bytes memory targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        ); // 'callDataToSendToTargetAddress'
+
+        // Step 2: Generate predicates contract "arbitrary static call" function calldata
+        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 3: Generate predicates contract "lt" function calldata
+        bytes memory ltFnCalldata = abi.encodeWithSignature(
+            "lt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        ); // lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Helpful in generating bytes offset (see below)
+        uint256 ltCalldataLength = bytes(ltFnCalldata).length;
+        // console.log("LT Calldata length1 ", ltCalldataLength);
+
+        // Step 4: Generate calldata to send to our target contract (for GT)
+        targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        );
+
+        // Step 5: Generate predicates contract "arbitrary static call" function calldata (for GT)
+        arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 6: Generate predicates contract "gt" function calldata
+        // 18 > 5
+        bytes memory gtFnCalldata = abi.encodeWithSignature(
+            "gt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        );
+
+        // Helpful in generating bytes offset (see below)
+        uint256 gtCalldataLength = bytes(gtFnCalldata).length;
+        // console.log("GT Calldata length ", gtCalldataLength);
+
+        // Step 7: generate 'offset' param value of 'or' fn of predicates contract
+
+        // Generationg offset, required by 'or' fn of predicates contract
+        // We have two predicates, length of both predicates in 260, so first predicate offset would be 260 and second would be "firstPredicateLength + 260 = 520"
+        bytes memory offsetBytes = abi.encodePacked(uint32(ltCalldataLength + gtCalldataLength), uint32(ltCalldataLength));
+
+        // 'or' fn expects offset in uint256, so padding 0s
+        for (uint256 i = (32 - offsetBytes.length) / 4; i > 0; i--) {
+            offsetBytes = abi.encodePacked(uint32(0), offsetBytes);
+        }
+        uint256 offset = uint256(bytes32(offsetBytes));
+
+        // Step 8: combine both 'lt' and 'gt' predicates
+        bytes memory jointPredicates = abi.encodePacked(
+            bytes(ltFnCalldata),
+            bytes(gtFnCalldata)
+        );
+
+        // Step 9: Generating 'or' fn calldata
+        bytes memory orFnCalldata = abi.encodeWithSignature(
+            "and(uint256,bytes)",
+            offset,
+            jointPredicates
+        );
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        orders[0].predicateCalldata = orFnCalldata;
+        orders[1].predicateCalldata = orFnCalldata;
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        signatures[0] = sellOrderSignature;
+        signatures[1] = buyOrderSignature;
+
+        vm.expectRevert(PredicateIsNotTrue.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
+    function testMultiplePredicateANDFail1() public {
+
+        // English: Only allow order execution if the return value from an arbitrary call is greater than some contraint.
+        // Predicate: gt(constraint(99999 * 10 ** 18), arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Step 1: Generate calldata to send to our target contract
+        bytes memory targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        ); // 'callDataToSendToTargetAddress'
+
+        // Step 2: Generate predicates contract "arbitrary static call" function calldata
+        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 3: Generate predicates contract "lt" function calldata
+        bytes memory gtFnCalldata1 = abi.encodeWithSignature(
+            "gt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        ); // lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Helpful in generating bytes offset (see below)
+        uint256 gtCalldataLength1 = bytes(gtFnCalldata1).length;
+        // console.log("LT Calldata length1 ", ltCalldataLength);
+
+        // Step 4: Generate calldata to send to our target contract (for GT)
+        targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        );
+
+        // Step 5: Generate predicates contract "arbitrary static call" function calldata (for GT)
+        arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 6: Generate predicates contract "gt" function calldata
+        // 18 > 5
+        bytes memory gtFnCalldata = abi.encodeWithSignature(
+            "gt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        );
+
+        // Helpful in generating bytes offset (see below)
+        uint256 gtCalldataLength = bytes(gtFnCalldata).length;
+        // console.log("GT Calldata length ", gtCalldataLength);
+
+        // Step 7: generate 'offset' param value of 'or' fn of predicates contract
+
+        // Generationg offset, required by 'or' fn of predicates contract
+        // We have two predicates, length of both predicates in 260, so first predicate offset would be 260 and second would be "firstPredicateLength + 260 = 520"
+        bytes memory offsetBytes = abi.encodePacked(uint32(gtCalldataLength1 + gtCalldataLength), uint32(gtCalldataLength1));
+
+        // 'or' fn expects offset in uint256, so padding 0s
+        for (uint256 i = (32 - offsetBytes.length) / 4; i > 0; i--) {
+            offsetBytes = abi.encodePacked(uint32(0), offsetBytes);
+        }
+        uint256 offset = uint256(bytes32(offsetBytes));
+
+        // Step 8: combine both 'lt' and 'gt' predicates
+        bytes memory jointPredicates = abi.encodePacked(
+            bytes(gtFnCalldata1),
+            bytes(gtFnCalldata)
+        );
+
+        // Step 9: Generating 'or' fn calldata
+        bytes memory orFnCalldata = abi.encodeWithSignature(
+            "and(uint256,bytes)",
+            offset,
+            jointPredicates
+        );
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        orders[0].predicateCalldata = orFnCalldata;
+        orders[1].predicateCalldata = orFnCalldata;
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        signatures[0] = sellOrderSignature;
+        signatures[1] = buyOrderSignature;
+
+        vm.expectRevert(PredicateIsNotTrue.selector);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
+    function testMultiplePredicateAND() public {
+
+        // English: Only allow order execution if the return value from an arbitrary call is greater than some contraint.
+        // Predicate: gt(constraint(99999 * 10 ** 18), arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Step 1: Generate calldata to send to our target contract
+        bytes memory targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        ); // 'callDataToSendToTargetAddress'
+
+        // Step 2: Generate predicates contract "arbitrary static call" function calldata
+        bytes memory arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 3: Generate predicates contract "lt" function calldata
+        bytes memory ltFnCalldata = abi.encodeWithSignature(
+            "lt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        ); // lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
+
+        // Helpful in generating bytes offset (see below)
+        uint256 ltCalldataLength = bytes(ltFnCalldata).length;
+        // console.log("LT Calldata length1 ", ltCalldataLength);
+
+        // Step 4: Generate calldata to send to our target contract (for GT)
+        targetContractCalldata = abi.encodeWithSelector(
+            usdc_eth.latestAnswer.selector
+        );
+
+        // Step 5: Generate predicates contract "arbitrary static call" function calldata (for GT)
+        arbitraryStaticCalldata = abi.encodeWithSignature(
+            "arbitraryStaticCall(address,bytes)",
+            address(usdc_eth),
+            targetContractCalldata
+        ); // arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)
+
+        // Step 6: Generate predicates contract "gt" function calldata
+        // 18 > 5
+        bytes memory ltFnCalldata1 = abi.encodeWithSignature(
+            "lt(uint256,bytes)",
+            _oraclePrice(),
+            arbitraryStaticCalldata
+        );
+
+        // Helpful in generating bytes offset (see below)
+        uint256 ltCalldataLength1 = bytes(ltFnCalldata1).length;
+        // console.log("GT Calldata length ", gtCalldataLength);
+
+        // Step 7: generate 'offset' param value of 'or' fn of predicates contract
+
+        // Generationg offset, required by 'or' fn of predicates contract
+        // We have two predicates, length of both predicates in 260, so first predicate offset would be 260 and second would be "firstPredicateLength + 260 = 520"
+        bytes memory offsetBytes = abi.encodePacked(uint32(ltCalldataLength + ltCalldataLength1), uint32(ltCalldataLength));
+
+        // 'or' fn expects offset in uint256, so padding 0s
+        for (uint256 i = (32 - offsetBytes.length) / 4; i > 0; i--) {
+            offsetBytes = abi.encodePacked(uint32(0), offsetBytes);
+        }
+        uint256 offset = uint256(bytes32(offsetBytes));
+
+        // Step 8: combine both 'lt' and 'gt' predicates
+        bytes memory jointPredicates = abi.encodePacked(
+            bytes(ltFnCalldata),
+            bytes(ltFnCalldata1)
+        );
+
+        // Step 9: Generating 'or' fn calldata
+        bytes memory orFnCalldata = abi.encodeWithSignature(
+            "and(uint256,bytes)",
+            offset,
+            jointPredicates
+        );
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory buyOrder,
+            OrderEngine.Order memory sellOrder
+        ) = getStandardInput();
+
+        orders[0].predicateCalldata = orFnCalldata;
+        orders[1].predicateCalldata = orFnCalldata;
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
+        bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
+        bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+
+        signatures[0] = sellOrderSignature;
+        signatures[1] = buyOrderSignature;
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
     function testPredicate() public {
         uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
         uint beforeWethMaker2 = weth.balanceOf(maker2);
