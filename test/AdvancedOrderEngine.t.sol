@@ -1124,7 +1124,6 @@ contract AdvancedOrderEngineTest is Test {
         assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount);
     }
 
-
     function testMultiplePredicateOR1() public {
 
         // English: Only allow order execution if the return value from an arbitrary call is greater than some contraint.
@@ -2572,10 +2571,4 @@ contract AdvancedOrderEngineTest is Test {
     function _oraclePrice() internal view virtual returns (uint256) {
         return 99999 ether;
     }
-
 }
-
-/** Predicates selectors
- * and = 0x616e6400
- * or = 0x6f720000
- */

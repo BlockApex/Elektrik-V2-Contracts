@@ -13,7 +13,7 @@ contract GenerateCalldata {
         targetContract = _targetContract;
     }
 
-function generateCalldata1() public view returns (bytes memory) {
+    function generateCalldata1() public view returns (bytes memory) {
         // English: Only allow order execution if the return value from an arbitrary call is less than 15.
         // Predicate: lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
 
@@ -39,7 +39,7 @@ function generateCalldata1() public view returns (bytes memory) {
         return ltFnCalldata;
     }
 
-function generateCalldata2() public view returns (bytes memory) {
+    function generateCalldata2() public view returns (bytes memory) {
         // English: Allow order execution if the return value from an arbitrary call is either less than 15 or greater than 5.
         // First, check if it's less than 15. If it isn't, then check if it's greater than 5. Allow order execution if either condition is true; disallow otherwise.
         // Predicate: or(lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)), gt(5, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)))
@@ -118,8 +118,7 @@ function generateCalldata2() public view returns (bytes memory) {
         return orFnCalldata;
     }
 
-
-function generateCalldataAnd_lt_gt(uint256 value_1, uint256 target_value_1, uint256 value_2, uint256 target_value_2) public view returns (bytes memory) {
+    function generateCalldataAnd_lt_gt(uint256 value_1, uint256 target_value_1, uint256 value_2, uint256 target_value_2) public view returns (bytes memory) {
         // English: Allow order execution if the return value from an arbitrary call is either less than 15 or greater than 5.
         // First, check if it's less than 15. If it isn't, then check if it's greater than 10. Allow order execution if either condition is true; disallow otherwise.
         // Predicate: and(lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)), gt(10, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)))
@@ -202,7 +201,7 @@ function generateCalldataAnd_lt_gt(uint256 value_1, uint256 target_value_1, uint
         return orFnCalldata;
     }
 
-      function generateCalldataOr_lt_gt(uint256 value_1, uint256 target_value_1, uint256 value_2, uint256 target_value_2) public view returns (bytes memory) {
+    function generateCalldataOr_lt_gt(uint256 value_1, uint256 target_value_1, uint256 value_2, uint256 target_value_2) public view returns (bytes memory) {
         // English: Allow order execution if the return value from an arbitrary call is either less than 15 or greater than 5.
         // First, check if it's less than 15. If it isn't, then check if it's greater than 10. Allow order execution if either condition is true; disallow otherwise.
         // Predicate: and(lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)), gt(10, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress)))
@@ -283,11 +282,9 @@ function generateCalldataAnd_lt_gt(uint256 value_1, uint256 target_value_1, uint
             jointPredicates
         );
         return orFnCalldata;
-}
+    }
 
-function generateCalldataNot() public view returns (bytes memory) {
-
-        
+    function generateCalldataNot() public view returns (bytes memory) {
 
         bytes memory targetContractCalldata = abi.encodeWithSignature(
             "dummyBool()"
@@ -304,10 +301,7 @@ function generateCalldataNot() public view returns (bytes memory) {
         return notFnCalldata;
     }
 
-
-
-
-function generateCalldatadynamic(string memory operation, uint256 x,uint256 y) public view returns (bytes memory) {
+    function generateCalldatadynamic(string memory operation, uint256 x,uint256 y) public view returns (bytes memory) {
         // English: Only allow order execution if the return value from an arbitrary call is less than 15.
         // Predicate: lt(15, arbitraryStaticCall(targetAddress, callDataToSendToTargetAddress))
 
@@ -336,5 +330,5 @@ function generateCalldatadynamic(string memory operation, uint256 x,uint256 y) p
         } else {
             revert("Unsupported operation");
         }
-}
+    }
 }
