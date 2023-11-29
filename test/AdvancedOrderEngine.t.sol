@@ -146,6 +146,32 @@ contract AdvancedOrderEngineTest is Test {
         );
 
         vm.stopPrank();
+
+        vm.startPrank(operator);
+
+        weth.approve(address(swapRouter02), UINT256_MAX);
+        weth.approve(address(advancedOrderEngine), UINT256_MAX);
+
+        // get weth
+        weth.deposit{value: 1 ether}();
+
+        usdc.approve(address(swapRouter02), UINT256_MAX);
+        usdc.approve(address(advancedOrderEngine), UINT256_MAX);
+
+        // get usdc
+        swapRouter02.exactInputSingle{value: 1 ether}(
+            ISwapRouter02.ExactInputSingleParams (
+                address(weth),
+                address(usdc),
+                500,
+                operator,
+                1 ether,
+                0,
+                0
+            )
+        );
+
+        vm.stopPrank();
     }
 
     function testOperatorPriviledge() public {
@@ -1031,61 +1057,99 @@ contract AdvancedOrderEngineTest is Test {
         vm.stopPrank();
     }
 
-    // function testDrainERC20() public {
+    function testDrainERC20() public {
 
-    //     uint balanceBefore = usdc.balanceOf(address(33));
-    //     vm.deal(address(advancedOrderEngine), 2 ether);
-    //     vm.prank(address(advancedOrderEngine));
-    //     weth.deposit{value: 1 ether}();
+        uint balanceBefore = usdc.balanceOf(operator);
 
-    //     vm.startPrank(operator);
+        vm.startPrank(operator);
 
-    //     (
-    //         OrderEngine.Order[] memory orders,
-    //         uint256[] memory sell,
-    //         uint256[] memory buy,
-    //         bytes[] memory signatures,
-    //         bytes memory facilitatorInteraction,
-    //         IERC20[] memory borrowedTokens,
-    //         uint256[] memory borrowedAmounts,
-    //         OrderEngine.Order memory order1,,
-    //     ) = getStandardInput1();
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory order1,
+            OrderEngine.Order memory order2,
+            OrderEngine.Order memory order3
+        ) = getStandardInput1();
 
-    //     bytes memory data = abi.encodeWithSelector(
-    //         usdc.transfer.selector,
-    //         address(33),
-    //         1 * 10 ** 6
-    //     );
+        OrderEngine.Order memory order4 = OrderEngine.Order(
+            127, // nonce value
+            block.timestamp + 3600, // valid till
+            1000000, // 1 USDC - sell token amount
+            2000000, // 0.0048 weth - buy token amount
+            0, // fee
+            operator, // Maker's address
+            operator, // Taker's Ethereum address (or null for public order)
+            operator, // Recipient's Ethereum address
+            usdc, // USDC token address - sell token
+            usdc, // MATIC token address - buy token
+            false, // is partially fillable
+            "0x", // facilitator calldata 
+            "", // predicate calldata 
+            "0x", // pre-interaction data 
+            "0x" // post-interaction data 
+        );
 
-    //     orders[2].preInteraction = abi.encodePacked(
-    //         address(usdc),
-    //         data
-    //     );
+        orders = new OrderEngine.Order[](4);
 
-    //     (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(order1)));
-    //     bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
+        orders[0] = order3;
+        orders[1] = order2;        
+        orders[2] = order1;
+        orders[3] = order4;
 
-    //     // (v, r, s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(buyOrder)));
-    //     // bytes memory buyOrderSignature = abi.encodePacked(r, s, v);
+        sell = new uint256[](4);
 
-    //     signatures[2] = sellOrderSignature;
+        sell[0] = order3.sellTokenAmount;
+        sell[1] = order2.sellTokenAmount;        
+        sell[2] = order1.sellTokenAmount;
+        sell[3] = order4.sellTokenAmount;
 
-    //     advancedOrderEngine.fillOrders(
-    //         orders,
-    //         sell,
-    //         buy,
-    //         signatures,
-    //         facilitatorInteraction,
-    //         borrowedTokens,
-    //         borrowedAmounts
-    //     );
+        buy = new uint256[](4);
 
-    //     uint balanceAfter = usdc.balanceOf(address(33));
+        buy[0] = order3.buyTokenAmount;
+        buy[1] = order2.buyTokenAmount;        
+        buy[2] = order1.buyTokenAmount;
+        buy[3] = order4.buyTokenAmount;
 
-    //     assertEq(balanceBefore + 1 * 10 ** 6, balanceAfter);
+        signatures = new bytes[](4);
 
-    //     vm.stopPrank();
-    // }
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(order1)));
+        bytes memory order1Signature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(order2)));
+        bytes memory order2Signature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(maker3PrivateKey, _hashTypedDataV4(OrderEngine.hash(order3)));
+        bytes memory order3Signature = abi.encodePacked(r, s, v);
+
+        (v, r, s) = vm.sign(operatorPrivateKey, _hashTypedDataV4(OrderEngine.hash(order4)));
+        bytes memory order4Signature = abi.encodePacked(r, s, v);
+
+        signatures[0] = order3Signature;
+        signatures[1] = order2Signature;
+        signatures[2] = order1Signature;
+        signatures[3] = order4Signature;
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        uint balanceAfter = usdc.balanceOf(operator);
+
+        assertEq(balanceBefore + 1 * 10 ** 6, balanceAfter);
+
+        vm.stopPrank();
+    }
 
     function testAsymetricFillOrders() public {
         uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
@@ -1472,21 +1536,21 @@ contract AdvancedOrderEngineTest is Test {
 
         orders = new OrderEngine.Order[](3);
 
-        orders[2] = order1;
-        orders[1] = order2;        
         orders[0] = order3;
+        orders[1] = order2;        
+        orders[2] = order1;
 
         sell = new uint256[](3);
 
-        sell[2] = order1.sellTokenAmount;
-        sell[1] = order2.sellTokenAmount;        
         sell[0] = order3.sellTokenAmount;
+        sell[1] = order2.sellTokenAmount;        
+        sell[2] = order1.sellTokenAmount;
 
         buy = new uint256[](3);
 
-        buy[2] = order1.buyTokenAmount;
-        buy[1] = order2.buyTokenAmount;        
         buy[0] = order3.buyTokenAmount;
+        buy[1] = order2.buyTokenAmount;        
+        buy[2] = order1.buyTokenAmount;
 
         signatures = new bytes[](3);
 
@@ -1499,9 +1563,9 @@ contract AdvancedOrderEngineTest is Test {
         (v, r, s) = vm.sign(maker3PrivateKey, _hashTypedDataV4(OrderEngine.hash(order3)));
         bytes memory order3Signature = abi.encodePacked(r, s, v);
 
-        signatures[2] = order1Signature;
-        signatures[1] = order2Signature;
         signatures[0] = order3Signature;
+        signatures[1] = order2Signature;
+        signatures[2] = order1Signature;
 
         facilitatorInteraction = "0x";
         borrowedAmounts = new uint256[](0);
