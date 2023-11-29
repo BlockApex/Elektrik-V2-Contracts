@@ -9,6 +9,7 @@ import "./../src/AdvancedOrderEngineErrors.sol";
 import "./../src/libraries/OrderEngine.sol";
 import "./../src/Helper/GenerateCalldata.sol";
 import "./../src/Helper/CallSwap.sol";
+import "./../src/Helper/CallTransfer.sol";
 import "./interfaces/swaprouter.sol";
 import "./interfaces/weth9.sol";
 import "./interfaces/pricefeed.sol";
@@ -20,6 +21,7 @@ contract AdvancedOrderEngineTest is Test {
     Predicates predicates;
     AdvancedOrderEngine advancedOrderEngine;
     GenerateCalldata generateCalldata;
+    address helper;
     address swapper;
     IERC20 wmatic = IERC20(0x7c9f4C87d911613Fe9ca58b579f737911AAD2D43);
     IERC20 usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
@@ -47,6 +49,7 @@ contract AdvancedOrderEngineTest is Test {
         generateCalldata = new GenerateCalldata(address(predicates));
         advancedOrderEngine = new AdvancedOrderEngine(IPredicates(address(predicates)), feeCollector);
         swapper = address(new Swapper());
+        helper = address(new Helper());
 
         advancedOrderEngine.manageOperatorPrivilege(operator, true);
 
@@ -1193,13 +1196,65 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker3 = usdc.balanceOf(maker3);
         uint afterWethMaker3 = weth.balanceOf(maker3);
 
-        console2.log(beforeUsdcMaker3, afterUsdcMaker3);
-        console2.log(beforeWethMaker3, afterWethMaker3);
-        console2.log(beforeUsdcMaker2, afterUsdcMaker2);
-        console2.log(beforeWethMaker2, afterWethMaker2);
-        console2.log(beforeUsdcMaker1, afterUsdcMaker1);
-        console2.log(beforeWethMaker1, afterWethMaker1);
-        console2.log(usdc.balanceOf(address(advancedOrderEngine)));
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.sellTokenAmount);
+        assertEq(beforeWethMaker2 + order2.buyTokenAmount, afterWethMaker2);
+        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.sellTokenAmount);
+        assertEq(beforeWethMaker1 + order1.buyTokenAmount, afterWethMaker1);
+        assertEq(beforeUsdcMaker3 + order3.buyTokenAmount, afterUsdcMaker3);
+        assertEq(beforeWethMaker3 , afterWethMaker3 + order3.sellTokenAmount);
+    }
+
+    function testFacilatatorBorrowedAmounts() public {
+
+        uint balanceBefore = usdc.balanceOf(operator);
+        uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
+        uint beforeWethMaker2 = weth.balanceOf(maker2);
+        uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
+        uint beforeWethMaker1 = weth.balanceOf(maker1);
+        uint beforeUsdcMaker3 = usdc.balanceOf(maker3);
+        uint beforeWethMaker3 = weth.balanceOf(maker3);
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory order1,
+            OrderEngine.Order memory order2,
+            OrderEngine.Order memory order3
+        ) = getStandardInput1();
+
+        facilitatorInteraction = abi.encodePacked(
+            helper
+        );
+        borrowedAmounts = new uint256[](1);
+        borrowedAmounts[0] = 1000000;
+        borrowedTokens = new IERC20[](1);
+        borrowedTokens[0] = usdc;
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+
+        uint afterUsdcMaker2 = usdc.balanceOf(maker2);
+        uint afterWethMaker2 = weth.balanceOf(maker2);
+        uint afterUsdcMaker1 = usdc.balanceOf(maker1);
+        uint afterWethMaker1 = weth.balanceOf(maker1);
+        uint afterUsdcMaker3 = usdc.balanceOf(maker3);
+        uint afterWethMaker3 = weth.balanceOf(maker3);
 
         assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.sellTokenAmount);
         assertEq(beforeWethMaker2 + order2.buyTokenAmount, afterWethMaker2);
@@ -1207,6 +1262,10 @@ contract AdvancedOrderEngineTest is Test {
         assertEq(beforeWethMaker1 + order1.buyTokenAmount, afterWethMaker1);
         assertEq(beforeUsdcMaker3 + order3.buyTokenAmount, afterUsdcMaker3);
         assertEq(beforeWethMaker3 , afterWethMaker3 + order3.sellTokenAmount);
+
+        uint balanceAfter = usdc.balanceOf(operator);
+
+        assertEq(balanceBefore + 1 * 10 ** 6, balanceAfter);
     }
 
     function testCancelOrders() public {
