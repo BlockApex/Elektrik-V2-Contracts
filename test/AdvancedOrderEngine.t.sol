@@ -343,6 +343,70 @@ contract AdvancedOrderEngineTest is Test {
         assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount);
     }
 
+    function testFillOrderInChunks() public {
+        uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
+        uint beforeWethMaker2 = weth.balanceOf(maker2);
+        uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
+        uint beforeWethMaker1 = weth.balanceOf(maker1);
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,
+            OrderEngine.Order memory order1,
+            OrderEngine.Order memory order2
+        ) = getStandardInput();
+
+        sell = new uint256[](2);
+
+        sell[0] = order2.sellTokenAmount / 2;
+        sell[1] = order1.sellTokenAmount / 2;
+
+        buy = new uint256[](2);
+
+        buy[0] = order2.buyTokenAmount / 2;
+        buy[1] = order1.buyTokenAmount / 2;
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+
+        uint afterUsdcMaker2 = usdc.balanceOf(maker2);
+        uint afterWethMaker2 = weth.balanceOf(maker2);
+        uint afterUsdcMaker1 = usdc.balanceOf(maker1);
+        uint afterWethMaker1 = weth.balanceOf(maker1);
+
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.sellTokenAmount);
+        assertEq(beforeWethMaker2 + order2.buyTokenAmount, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + order1.buyTokenAmount, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + order1.sellTokenAmount);
+    }
+
     function testNoOrderInputFillOrders() public {
         uint beforeUsdcMaker2 = usdc.balanceOf(maker2);
         uint beforeWethMaker2 = weth.balanceOf(maker2);
