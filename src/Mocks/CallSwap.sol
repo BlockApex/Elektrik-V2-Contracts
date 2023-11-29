@@ -30,7 +30,7 @@ contract Swapper is IPreInteractionNotificationReceiver {
         bytes memory interactionData
     ) external {
 
-        console2.log("balance: ", weth.balanceOf(address(this)));
+        // console2.log("balance: ", weth.balanceOf(address(this)));
         weth.approve(swapRouter2, type(uint).max);
         (bool success, bytes memory data) = address(swapRouter2).call(interactionData);
         require (success);
