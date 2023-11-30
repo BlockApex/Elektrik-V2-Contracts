@@ -20,3 +20,4 @@ error InvalidInteractionTarget();
 error AccessDenied();
 error SameFeeCollectorAddress();
 error TokenNotWhitelisted();
+error SameBuyAndSellToken();

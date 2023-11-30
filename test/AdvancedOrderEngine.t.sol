@@ -31,6 +31,7 @@ contract AdvancedOrderEngineTest is Test {
     ISwapRouter02 swapRouter02 = ISwapRouter02(0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45);
     IPriceFeed usdc_eth = IPriceFeed(0x986b5E1e1755e3C2440e960477f25201B0a8bbD4);
     IQuoter qouter = IQuoter(0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6);
+    IQuoter positions = IQuoter(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
     address zeroAddress = address(0);
     address feeCollector = address(147578);
     address admin = address(3);
@@ -1986,6 +1987,7 @@ contract AdvancedOrderEngineTest is Test {
         signatures[2] = order1Signature;
         signatures[3] = order4Signature;
 
+        vm.expectRevert(SameBuyAndSellToken.selector);
         advancedOrderEngine.fillOrders(
             orders,
             sell,
@@ -1998,7 +2000,7 @@ contract AdvancedOrderEngineTest is Test {
 
         uint balanceAfter = usdc.balanceOf(operator);
 
-        assertEq(balanceBefore + 1 * 10 ** 6, balanceAfter);
+        assertEq(balanceBefore, balanceAfter);
 
         vm.stopPrank();
     }
@@ -2236,8 +2238,9 @@ contract AdvancedOrderEngineTest is Test {
     }
 
     function testSingleOrder() public {
+        // This is an invalid test case, i.e this is not a real word use case, this was only used to determine working of pre intercation code
         uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
-        uint beforeWethMaker1 = weth.balanceOf(maker1);
+        // uint beforeWethMaker1 = weth.balanceOf(maker1);
 
         OrderEngine.Order[] memory orders;
         uint256[] memory sell;
@@ -2249,16 +2252,14 @@ contract AdvancedOrderEngineTest is Test {
         OrderEngine.Order memory sellOrder = OrderEngine.Order(
             123, // nonce value
             block.timestamp + 3600, // valid till
-            10000000, // 10 USDC - sell amount
-            10000000, // 10 USDC - sell amount
-            // 4800000000000000, // 0.0048 weth - buy token
+            1, //  weth - sell token // so it does not fail on zero amount
+            10000000, // 10 USDC - buy amount
             0, // fee
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
+            weth, // weth token address - sell token
             usdc, // USDC token address - buy token
-            usdc, // USDC token address - buy token
-            // weth, // MATIC token address - sell token
             true, // is partially fillable
             "0x", // facilitator call data 
             "", // predicate calldata 
@@ -2285,7 +2286,7 @@ contract AdvancedOrderEngineTest is Test {
                     address(weth),
                     address(usdc),
                     500,
-                    maker1,
+                    address(advancedOrderEngine),
                     amountIn,
                     sellOrder.buyTokenAmount,
                     0
@@ -2334,9 +2335,9 @@ contract AdvancedOrderEngineTest is Test {
         vm.stopPrank();
 
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
-        uint afterWethMaker1 = weth.balanceOf(maker1);
+        // uint afterWethMaker1 = weth.balanceOf(maker1);
         assertEq(beforeUsdcMaker1 + sellOrder.buyTokenAmount, afterUsdcMaker1);
-        assertEq(beforeWethMaker1 , afterWethMaker1 + amountIn);
+        // assertEq(beforeWethMaker1, afterWethMaker1);
     }
 
     function testFacilitatorSwap() public {

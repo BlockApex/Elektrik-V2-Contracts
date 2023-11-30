@@ -499,6 +499,13 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
             revert TokenNotWhitelisted();
         }
 
+        // Revert if buy token and sell token are equal
+        if (
+            order.sellToken == order.buyToken
+        ) {
+            revert SameBuyAndSellToken();
+        }
+
         // Revert if any address in the order is zero.
         if (
             order.maker == address(0) ||
