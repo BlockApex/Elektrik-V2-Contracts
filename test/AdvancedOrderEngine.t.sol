@@ -199,6 +199,72 @@ contract AdvancedOrderEngineTest is Test {
         vm.stopPrank();
     }
 
+    function testWithdraw() public {
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts,,,
+        ) = getStandardInput1();
+
+        vm.prank(operator);
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.startPrank(admin);
+
+        vm.expectRevert(ZeroAddress.selector);
+        advancedOrderEngine.withdraw(
+            address(0),
+            1 * 10 ** 6,
+            admin
+        );
+
+        vm.expectRevert(ZeroAddress.selector);
+        advancedOrderEngine.withdraw(
+            address(usdc),
+            1 * 10 ** 6,
+            address(0)
+        );
+
+        vm.expectRevert();
+        advancedOrderEngine.withdraw(
+            address(usdc),
+            2 * 10 ** 6,
+            address(0)
+        );
+
+        uint256 balBefore = usdc.balanceOf(admin);
+        advancedOrderEngine.withdraw(
+            address(usdc),
+            1 * 10 ** 6,
+            admin
+        );
+        uint256 balAfter = usdc.balanceOf(admin);
+
+        assertEq(balBefore + 1 * 10 ** 6, balAfter);
+
+        vm.stopPrank();
+
+        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        advancedOrderEngine.withdraw(
+            address(usdc),
+            1 * 10 ** 6,
+            admin
+        );
+    }
+
     function testOperatorPriviledge() public {
         vm.startPrank(admin);
 

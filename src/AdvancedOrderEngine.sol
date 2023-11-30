@@ -244,6 +244,27 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         feeCollector = newFeeCollectorAddr;
     }
 
+    /**
+     * @notice collect leftover tokens.
+     * @dev Only callable by the owner.
+     * @param token token's contract address
+     * @param amount amount you want to transfer
+     * @param to address you want to transfer funds to
+     */
+    function withdraw (
+        address token,
+        uint amount,
+        address to
+    ) external onlyOwner {
+        // Revert if the new fee collector address is a zero address.
+        if (token == address(0) || to == address(0)) {
+            revert ZeroAddress();
+        }
+
+        _sendAsset(IERC20(token), amount, to);
+
+    }
+
     /*//////////////////////////////////////////////////////////////
                         ORDER PROCESSING FUNCTIONS
     //////////////////////////////////////////////////////////////*/
