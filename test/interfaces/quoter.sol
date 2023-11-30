@@ -10,4 +10,12 @@ interface IQuoter {
         uint256 amountOut,
         uint160 sqrtPriceLimitX96
     ) external payable returns(uint256);
+
+    function quoteExactInputSingle(
+        address tokenIn,
+        address tokenOut,
+        uint24 fee,
+        uint256 amountIn,
+        uint160 sqrtPriceLimitX96
+    ) external payable returns(uint256);
 }
