@@ -29,7 +29,6 @@ contract FacilitatorSwap is IFacilitatorInteractionNotificationReceiver {
         uint256[] calldata borrowedAmounts,
         bytes memory interactionData
     ) external {
-        usdc.approve(swapRouter2, type(uint).max);
         (bool success, bytes memory data) = address(swapRouter2).call(interactionData);
         require (success);
 
@@ -41,5 +40,19 @@ contract FacilitatorSwap is IFacilitatorInteractionNotificationReceiver {
             interactionData,
             data
         );
+    }   
+
+    function approve(
+        address token,
+        address to,
+        uint256 amount
+    ) external {
+        IERC20(token).approve(to, amount);
+    }   
+
+    function updateRouter(
+        address newRouter
+    ) external {
+        swapRouter2 = newRouter;
     }   
 }

@@ -2776,8 +2776,11 @@ contract AdvancedOrderEngineTest is Test {
             "0x" // post-interaction data 
         );
 
+        address fs = address(new FacilitatorSwap());
+        FacilitatorSwap(fs).approve(address(usdc), address(swapRouter02), UINT256_MAX);
+
         data = abi.encodePacked(
-            address(new FacilitatorSwap()),
+            fs,
             abi.encodeWithSelector(
                 swapRouter02.exactInputSingle.selector,
                 ISwapRouter02.ExactInputSingleParams (
