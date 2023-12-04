@@ -20,9 +20,6 @@ jobs:
     - name: Save Slither output to file
       run: echo "${{ steps.slither.outputs.stdout }}" > slither-output.txt
 
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
     - name: Configure Git
       run: |
         git config user.name "GitHub Actions Bot"
