@@ -23,9 +23,9 @@
 | `testPredicateFail` | Tests the failure scenario when executing orders with a predicate that evaluates to false. | ✔ |
 | `testMultiplePredicateOR` | Tests the successful execution of orders with a logical OR combination of multiple predicates, involving 'lt' and 'gt' conditions. | ✔ |
 | `testMultiplePredicateOR1` | Tests the successful execution of orders with another combination of logical OR of multiple predicates, involving 'lt' conditions. | ✔ |
-| `testMultiplePredicateORFail` | Tests the failure scenario when executing orders with a logical OR combination of multiple predicates, where the arbitrary call in the second predicate fails. | ✘ |
-| `testMultiplePredicateANDFail` | Tests the failure scenario when executing orders with a logical AND combination of multiple predicates, where the arbitrary call in the second predicate fails. | ✘ |
-| `testMultiplePredicateANDFail1` | Tests another failure scenario when executing orders with a logical AND combination of multiple predicates, where the arbitrary call in the first predicate fails. | ✘ |
+| `testMultiplePredicateORFail` | Tests the failure scenario when executing orders with a logical OR combination of multiple predicates, where the arbitrary call in the second predicate fails. | ✔ |
+| `testMultiplePredicateANDFail` | Tests the failure scenario when executing orders with a logical AND combination of multiple predicates, where the arbitrary call in the second predicate fails. | ✔ |
+| `testMultiplePredicateANDFail1` | Tests another failure scenario when executing orders with a logical AND combination of multiple predicates, where the arbitrary call in the first predicate fails. | ✔ |
 | `testMultiplePredicateAND` | Tests the successful execution of orders with a logical AND combination of multiple predicates, involving 'lt' conditions. | ✔ |
 | `testPredicate` | Tests the successful execution of orders with a single predicate involving 'lt' conditions. | ✔ |
 | `testDrain`                    | Execute drain functionality with various orders. | ✔                  |
