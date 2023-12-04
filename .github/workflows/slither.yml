@@ -20,6 +20,11 @@ jobs:
     - name: Save Slither output to file
       run: echo "Test output" > slither-output.txt
 
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+       ref: testing 
+
     - name: Configure Git
       run: |
         git config user.name "GitHub Actions Bot"
@@ -29,7 +34,7 @@ jobs:
       run: |
         git add slither-output.txt
         git commit -m "Update Slither analysis output"
-        git push
+        git push origin testing
         
     # Upload Slither Report as an Artifact
     - name: Upload Slither Report
