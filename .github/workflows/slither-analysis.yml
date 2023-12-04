@@ -13,7 +13,7 @@ jobs:
       uses: crytic/slither-action@v0.3.0
       id: slither
       with:
-        target: 'Contracts'
+        target: 'src'
         node-version: 16
         fail-on: none
         slither-args: --checklist --show-ignored-findings --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
