@@ -17,11 +17,13 @@ jobs:
         fail-on: none
         slither-args: --checklist --filter-paths "openzeppelin-contracts" --show-ignored-findings --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
 
-    - name: Print Slither output
-      run: echo "${{ steps.slither.outputs.stdout }}"
+
        
     - name: Save Slither output to file
-      run: echo "${{ steps.slither.outputs.stdout }}" | > slither-output-base64.txt
+      run: |
+        {
+         echo "${{ steps.slither.outputs.stdout }}"
+        } > slither-output.txt
 
     - name: Configure Git
       run: |
