@@ -1,0 +1,38 @@
+name: Slither Analysis
+
+on: [push, pull_request]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Run Slither
+      uses: crytic/slither-action@v0.3.0
+      id: slither
+      with:
+        node-version: 16
+        fail-on: none
+        slither-args: --checklist --filter-paths "openzeppelin-contracts" --show-ignored-findings --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
+     
+    - name: Save Slither output to file
+      run: echo "${{ steps.slither.outputs.stdout }}" > slither-output.txt
+
+    - name: Configure Git
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "actions@github.com"
+    - name: Commit and push changes
+      run: |
+        git add slither-output.txt
+        git commit -m "Update Slither analysis output"
+        git push
+    # Upload Slither Report as an Artifact
+    - name: Upload Slither Report
+      if: always() # Ensure the artifact is uploaded even if previous steps fail
+      uses: actions/upload-artifact@v3
+      with:
+        name: slither-report
+        path: slither-output.txt 
