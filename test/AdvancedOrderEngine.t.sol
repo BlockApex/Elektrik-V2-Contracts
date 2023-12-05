@@ -425,10 +425,10 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         uint afterWethMaker1 = weth.balanceOf(maker1);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.sellTokenAmount);
-        assertEq(beforeWethMaker2 + sellOrder.buyTokenAmount, afterWethMaker2);
-        assertEq(beforeUsdcMaker1 + buyOrder.buyTokenAmount, afterUsdcMaker1);
-        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.a.sellTokenAmount);
+        assertEq(beforeWethMaker2 + sellOrder.a.buyTokenAmount, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buyOrder.a.buyTokenAmount, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.a.sellTokenAmount);
     }
 
     function testRingOrders() public {
@@ -473,12 +473,12 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker3 = usdc.balanceOf(maker3);
         uint afterMaticMaker3 = wmatic.balanceOf(maker3);
 
-        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.sellTokenAmount);
-        assertEq(beforeWethMaker1 + order1.buyTokenAmount , afterWethMaker1);
-        assertEq(beforeWethMaker2, afterWethMaker2 + order2.sellTokenAmount);
-        assertEq(beforeMaticMaker2 + order2.buyTokenAmount, afterMaticMaker2);
-        assertEq(beforeMaticMaker3, afterMaticMaker3 + order3.sellTokenAmount);
-        assertEq(beforeUsdcMaker3 + order3.buyTokenAmount, afterUsdcMaker3);
+        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.a.sellTokenAmount);
+        assertEq(beforeWethMaker1 + order1.a.buyTokenAmount , afterWethMaker1);
+        assertEq(beforeWethMaker2, afterWethMaker2 + order2.a.sellTokenAmount);
+        assertEq(beforeMaticMaker2 + order2.a.buyTokenAmount, afterMaticMaker2);
+        assertEq(beforeMaticMaker3, afterMaticMaker3 + order3.a.sellTokenAmount);
+        assertEq(beforeUsdcMaker3 + order3.a.buyTokenAmount, afterUsdcMaker3);
     }
 
     function testFillOrderInChunks() public {
@@ -503,13 +503,13 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](2);
 
-        sell[0] = order2.sellTokenAmount / 2;
-        sell[1] = order1.sellTokenAmount / 2;
+        sell[0] = order2.a.sellTokenAmount / 2;
+        sell[1] = order1.a.sellTokenAmount / 2;
 
         buy = new uint256[](2);
 
-        buy[0] = order2.buyTokenAmount / 2;
-        buy[1] = order1.buyTokenAmount / 2;
+        buy[0] = order2.a.buyTokenAmount / 2;
+        buy[1] = order1.a.buyTokenAmount / 2;
 
         advancedOrderEngine.fillOrders(
             orders,
@@ -539,10 +539,10 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         uint afterWethMaker1 = weth.balanceOf(maker1);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.sellTokenAmount);
-        assertEq(beforeWethMaker2 + order2.buyTokenAmount, afterWethMaker2);
-        assertEq(beforeUsdcMaker1 + order1.buyTokenAmount, afterUsdcMaker1);
-        assertEq(beforeWethMaker1 , afterWethMaker1 + order1.sellTokenAmount);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.a.sellTokenAmount);
+        assertEq(beforeWethMaker2 + order2.a.buyTokenAmount, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + order1.a.buyTokenAmount, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + order1.a.sellTokenAmount);
     }
 
     function testNoOrderInputFillOrders() public {
@@ -608,7 +608,7 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        sellOrder.validTill = block.timestamp - 1000;
+        sellOrder.a.validTill = block.timestamp - 1000;
         orders[0] = sellOrder;
 
         // expired order
@@ -629,9 +629,9 @@ contract AdvancedOrderEngineTest is Test {
         );
 
         // zero amount
-        sellOrder.validTill = block.timestamp + 1000;
-        uint prevSellAmount = sellOrder.sellTokenAmount;
-        sellOrder.sellTokenAmount = 0;
+        sellOrder.a.validTill = block.timestamp + 1000;
+        uint prevSellAmount = sellOrder.a.sellTokenAmount;
+        sellOrder.a.sellTokenAmount = 0;
         orders[0] = sellOrder;
 
         // zero amount 
@@ -647,9 +647,9 @@ contract AdvancedOrderEngineTest is Test {
         );
 
         // not white listed token
-        sellOrder.sellTokenAmount = prevSellAmount;
-        IERC20 prevToken = sellOrder.sellToken;
-        sellOrder.sellToken = wbtc;
+        sellOrder.a.sellTokenAmount = prevSellAmount;
+        IERC20 prevToken = sellOrder.b.sellToken;
+        sellOrder.b.sellToken = wbtc;
         orders[0] = sellOrder;
 
         vm.expectRevert(TokenNotWhitelisted.selector);
@@ -664,8 +664,8 @@ contract AdvancedOrderEngineTest is Test {
         );
 
         // not zero address token
-        sellOrder.sellTokenAmount = prevSellAmount;
-        sellOrder.sellToken = IERC20(address(0));
+        sellOrder.a.sellTokenAmount = prevSellAmount;
+        sellOrder.b.sellToken = IERC20(address(0));
         orders[0] = sellOrder;
 
         vm.expectRevert(TokenNotWhitelisted.selector);
@@ -680,8 +680,8 @@ contract AdvancedOrderEngineTest is Test {
         );
 
         // zero address operator
-        sellOrder.sellToken = prevToken;
-        sellOrder.operator = address(99);
+        sellOrder.b.sellToken = prevToken;
+        sellOrder.b.operator = address(99);
         orders[0] = sellOrder;
 
         vm.expectRevert(PrivateOrder.selector);
@@ -696,7 +696,7 @@ contract AdvancedOrderEngineTest is Test {
         );
 
         // zero address operator
-        sellOrder.operator = address(0);
+        sellOrder.b.operator = address(0);
         orders[0] = sellOrder;
 
         vm.expectRevert(InvalidSignature.selector);
@@ -806,7 +806,7 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](1);
 
-        sell[0] = sellOrder.sellTokenAmount;
+        sell[0] = sellOrder.a.sellTokenAmount;
 
         vm.expectRevert(ArraysLengthMismatch.selector);
         advancedOrderEngine.fillOrders(
@@ -822,13 +822,13 @@ contract AdvancedOrderEngineTest is Test {
         // if buy order != sell order || order || sig
         buy = new uint256[](1);
 
-        buy[0] = sellOrder.buyTokenAmount;
-        // buy[1] = buyOrder.buyTokenAmount;
+        buy[0] = sellOrder.a.buyTokenAmount;
+        // buy[1] = buyOrder.a.buyTokenAmount;
         
         sell = new uint256[](2);
 
-        sell[0] = sellOrder.sellTokenAmount;
-        sell[1] = buyOrder.sellTokenAmount;
+        sell[0] = sellOrder.a.sellTokenAmount;
+        sell[1] = buyOrder.a.sellTokenAmount;
 
         vm.expectRevert(ArraysLengthMismatch.selector);
         advancedOrderEngine.fillOrders(
@@ -844,8 +844,8 @@ contract AdvancedOrderEngineTest is Test {
         // if sig != buy order || sell order || sig
         buy = new uint256[](2);
 
-        buy[0] = sellOrder.buyTokenAmount;
-        buy[1] = buyOrder.buyTokenAmount;
+        buy[0] = sellOrder.a.buyTokenAmount;
+        buy[1] = buyOrder.a.buyTokenAmount;
         
         signatures = new bytes[](1);
 
@@ -898,10 +898,10 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        sell[0] = sellOrder.sellTokenAmount / 2;
-        sell[1] = buyOrder.sellTokenAmount / 2;
-        buy[0] = sellOrder.buyTokenAmount / 2;
-        buy[1] = buyOrder.buyTokenAmount / 2;
+        sell[0] = sellOrder.a.sellTokenAmount / 2;
+        sell[1] = buyOrder.a.sellTokenAmount / 2;
+        buy[0] = sellOrder.a.buyTokenAmount / 2;
+        buy[1] = buyOrder.a.buyTokenAmount / 2;
 
         advancedOrderEngine.fillOrders(
             orders,
@@ -920,10 +920,10 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         uint afterWethMaker1 = weth.balanceOf(maker1);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.sellTokenAmount / 2);
-        assertEq(beforeWethMaker2 + sellOrder.buyTokenAmount / 2, afterWethMaker2);
-        assertEq(beforeUsdcMaker1 + buyOrder.buyTokenAmount / 2, afterUsdcMaker1);
-        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount / 2);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.a.sellTokenAmount / 2);
+        assertEq(beforeWethMaker2 + sellOrder.a.buyTokenAmount / 2, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buyOrder.a.buyTokenAmount / 2, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.a.sellTokenAmount / 2);
     }
 
     function testExceedsOrderSellAmount() public {
@@ -942,10 +942,10 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        sell[0] = sellOrder.sellTokenAmount * 2;
-        sell[1] = buyOrder.sellTokenAmount * 2;
-        buy[0] = sellOrder.buyTokenAmount * 2;
-        buy[1] = buyOrder.buyTokenAmount * 2;
+        sell[0] = sellOrder.a.sellTokenAmount * 2;
+        sell[1] = buyOrder.a.sellTokenAmount * 2;
+        buy[0] = sellOrder.a.buyTokenAmount * 2;
+        buy[1] = buyOrder.a.buyTokenAmount * 2;
 
         vm.expectRevert(ExceedsOrderSellAmount.selector);
         advancedOrderEngine.fillOrders(
@@ -1043,13 +1043,13 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        sell[0] = sellOrder.sellTokenAmount / 2;
-        sell[1] = buyOrder.sellTokenAmount / 2;
-        buy[0] = sellOrder.buyTokenAmount / 2;
-        buy[1] = buyOrder.buyTokenAmount / 2;
+        sell[0] = sellOrder.a.sellTokenAmount / 2;
+        sell[1] = buyOrder.a.sellTokenAmount / 2;
+        buy[0] = sellOrder.a.buyTokenAmount / 2;
+        buy[1] = buyOrder.a.buyTokenAmount / 2;
 
-        orders[0].isPartiallyFillable = false;
-        orders[1].isPartiallyFillable = false;
+        orders[0].c.isPartiallyFillable = false;
+        orders[1].c.isPartiallyFillable = false;
         
         vm.expectRevert(LimitPriceNotRespected.selector);
         advancedOrderEngine.fillOrders(
@@ -1105,8 +1105,8 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        orders[0].predicateCalldata = ltFnCalldata;
-        orders[1].predicateCalldata = ltFnCalldata;
+        orders[0].c.predicateCalldata = ltFnCalldata;
+        orders[1].c.predicateCalldata = ltFnCalldata;
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
         bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
@@ -1227,8 +1227,8 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        orders[0].predicateCalldata = orFnCalldata;
-        orders[1].predicateCalldata = orFnCalldata;
+        orders[0].c.predicateCalldata = orFnCalldata;
+        orders[1].c.predicateCalldata = orFnCalldata;
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
         bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
@@ -1256,10 +1256,10 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         uint afterWethMaker1 = weth.balanceOf(maker1);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.sellTokenAmount);
-        assertEq(beforeWethMaker2 + sellOrder.buyTokenAmount, afterWethMaker2);
-        assertEq(beforeUsdcMaker1 + buyOrder.buyTokenAmount, afterUsdcMaker1);
-        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.a.sellTokenAmount);
+        assertEq(beforeWethMaker2 + sellOrder.a.buyTokenAmount, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buyOrder.a.buyTokenAmount, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.a.sellTokenAmount);
     }
 
     function testMultiplePredicateOR1() public {
@@ -1353,8 +1353,8 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        orders[0].predicateCalldata = orFnCalldata;
-        orders[1].predicateCalldata = orFnCalldata;
+        orders[0].c.predicateCalldata = orFnCalldata;
+        orders[1].c.predicateCalldata = orFnCalldata;
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
         bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
@@ -1469,8 +1469,8 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        orders[0].predicateCalldata = orFnCalldata;
-        orders[1].predicateCalldata = orFnCalldata;
+        orders[0].c.predicateCalldata = orFnCalldata;
+        orders[1].c.predicateCalldata = orFnCalldata;
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
         bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
@@ -1586,8 +1586,8 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        orders[0].predicateCalldata = orFnCalldata;
-        orders[1].predicateCalldata = orFnCalldata;
+        orders[0].c.predicateCalldata = orFnCalldata;
+        orders[1].c.predicateCalldata = orFnCalldata;
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
         bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
@@ -1703,8 +1703,8 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        orders[0].predicateCalldata = orFnCalldata;
-        orders[1].predicateCalldata = orFnCalldata;
+        orders[0].c.predicateCalldata = orFnCalldata;
+        orders[1].c.predicateCalldata = orFnCalldata;
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
         bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
@@ -1820,8 +1820,8 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        orders[0].predicateCalldata = orFnCalldata;
-        orders[1].predicateCalldata = orFnCalldata;
+        orders[0].c.predicateCalldata = orFnCalldata;
+        orders[1].c.predicateCalldata = orFnCalldata;
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
         bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
@@ -1888,8 +1888,8 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        orders[0].predicateCalldata = ltFnCalldata;
-        orders[1].predicateCalldata = ltFnCalldata;
+        orders[0].c.predicateCalldata = ltFnCalldata;
+        orders[1].c.predicateCalldata = ltFnCalldata;
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(sellOrder)));
         bytes memory sellOrderSignature = abi.encodePacked(r, s, v);
@@ -1917,10 +1917,10 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         uint afterWethMaker1 = weth.balanceOf(maker1);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.sellTokenAmount);
-        assertEq(beforeWethMaker2 + sellOrder.buyTokenAmount, afterWethMaker2);
-        assertEq(beforeUsdcMaker1 + buyOrder.buyTokenAmount, afterUsdcMaker1);
-        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.a.sellTokenAmount);
+        assertEq(beforeWethMaker2 + sellOrder.a.buyTokenAmount, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buyOrder.a.buyTokenAmount, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.a.sellTokenAmount);
     }
 
     function testDrain() public {
@@ -1948,7 +1948,7 @@ contract AdvancedOrderEngineTest is Test {
             1 ether
         );
 
-        orders[0].preInteraction = abi.encodePacked(
+        orders[0].c.preInteraction = abi.encodePacked(
             address(advancedOrderEngine),
             data
         );
@@ -1996,21 +1996,27 @@ contract AdvancedOrderEngineTest is Test {
         ) = getStandardInput1();
 
         OrderEngine.Order memory order4 = OrderEngine.Order(
+            OrderEngine.A (
             127, // nonce value
             block.timestamp + 3600, // valid till
             1000000, // 1 USDC - sell token amount
             2000000, // 0.0048 weth - buy token amount
-            0, // fee
+            0 // fee
+            ),
+            OrderEngine.B (
             operator, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             operator, // Recipient's Ethereum address
             usdc, // USDC token address - sell token
-            usdc, // MATIC token address - buy token
+            usdc // MATIC token address - buy token
+            ),
+            OrderEngine.C (
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
             "0x", // pre-interaction data 
             "0x" // post-interaction data 
+            )
         );
 
         orders = new OrderEngine.Order[](4);
@@ -2022,17 +2028,17 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](4);
 
-        sell[0] = order3.sellTokenAmount;
-        sell[1] = order2.sellTokenAmount;        
-        sell[2] = order1.sellTokenAmount;
-        sell[3] = order4.sellTokenAmount;
+        sell[0] = order3.a.sellTokenAmount;
+        sell[1] = order2.a.sellTokenAmount;        
+        sell[2] = order1.a.sellTokenAmount;
+        sell[3] = order4.a.sellTokenAmount;
 
         buy = new uint256[](4);
 
-        buy[0] = order3.buyTokenAmount;
-        buy[1] = order2.buyTokenAmount;        
-        buy[2] = order1.buyTokenAmount;
-        buy[3] = order4.buyTokenAmount;
+        buy[0] = order3.a.buyTokenAmount;
+        buy[1] = order2.a.buyTokenAmount;        
+        buy[2] = order1.a.buyTokenAmount;
+        buy[3] = order4.a.buyTokenAmount;
 
         signatures = new bytes[](4);
 
@@ -2113,12 +2119,12 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker3 = usdc.balanceOf(maker3);
         uint afterWethMaker3 = weth.balanceOf(maker3);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.sellTokenAmount);
-        assertEq(beforeWethMaker2 + order2.buyTokenAmount, afterWethMaker2);
-        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.sellTokenAmount);
-        assertEq(beforeWethMaker1 + order1.buyTokenAmount, afterWethMaker1);
-        assertEq(beforeUsdcMaker3 + order3.buyTokenAmount, afterUsdcMaker3);
-        assertEq(beforeWethMaker3 , afterWethMaker3 + order3.sellTokenAmount);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.a.sellTokenAmount);
+        assertEq(beforeWethMaker2 + order2.a.buyTokenAmount, afterWethMaker2);
+        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.a.sellTokenAmount);
+        assertEq(beforeWethMaker1 + order1.a.buyTokenAmount, afterWethMaker1);
+        assertEq(beforeUsdcMaker3 + order3.a.buyTokenAmount, afterUsdcMaker3);
+        assertEq(beforeWethMaker3 , afterWethMaker3 + order3.a.sellTokenAmount);
     }
 
     function testAsymetricPartiallyFillOrders() public {
@@ -2163,12 +2169,12 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker3 = usdc.balanceOf(maker3);
         uint afterWethMaker3 = weth.balanceOf(maker3);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.sellTokenAmount / 2);
-        assertEq(beforeWethMaker2 + order2.buyTokenAmount / 2, afterWethMaker2);
-        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.sellTokenAmount);
-        assertEq(beforeWethMaker1 + order1.buyTokenAmount, afterWethMaker1);
-        assertEq(beforeUsdcMaker3 + order3.buyTokenAmount, afterUsdcMaker3);
-        assertEq(beforeWethMaker3 , afterWethMaker3 + order3.sellTokenAmount);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.a.sellTokenAmount / 2);
+        assertEq(beforeWethMaker2 + order2.a.buyTokenAmount / 2, afterWethMaker2);
+        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.a.sellTokenAmount);
+        assertEq(beforeWethMaker1 + order1.a.buyTokenAmount, afterWethMaker1);
+        assertEq(beforeUsdcMaker3 + order3.a.buyTokenAmount, afterUsdcMaker3);
+        assertEq(beforeWethMaker3 , afterWethMaker3 + order3.a.sellTokenAmount);
     }
 
     function testFacilatatorBorrowedAmounts() public {
@@ -2223,12 +2229,12 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker3 = usdc.balanceOf(maker3);
         uint afterWethMaker3 = weth.balanceOf(maker3);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.sellTokenAmount);
-        assertEq(beforeWethMaker2 + order2.buyTokenAmount, afterWethMaker2);
-        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.sellTokenAmount);
-        assertEq(beforeWethMaker1 + order1.buyTokenAmount, afterWethMaker1);
-        assertEq(beforeUsdcMaker3 + order3.buyTokenAmount, afterUsdcMaker3);
-        assertEq(beforeWethMaker3 , afterWethMaker3 + order3.sellTokenAmount);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.a.sellTokenAmount);
+        assertEq(beforeWethMaker2 + order2.a.buyTokenAmount, afterWethMaker2);
+        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.a.sellTokenAmount);
+        assertEq(beforeWethMaker1 + order1.a.buyTokenAmount, afterWethMaker1);
+        assertEq(beforeUsdcMaker3 + order3.a.buyTokenAmount, afterUsdcMaker3);
+        assertEq(beforeWethMaker3 , afterWethMaker3 + order3.a.sellTokenAmount);
 
         uint balanceAfter = usdc.balanceOf(operator);
 
@@ -2316,28 +2322,34 @@ contract AdvancedOrderEngineTest is Test {
         IERC20[] memory borrowedTokens;
         uint256[] memory borrowedAmounts;
         OrderEngine.Order memory sellOrder = OrderEngine.Order(
+            OrderEngine.A (
             123, // nonce value
             block.timestamp + 3600, // valid till
             1, //  weth - sell token // so it does not fail on zero amount
             10000000, // 10 USDC - buy amount
-            0, // fee
+            0 // fee
+            ),
+            OrderEngine.B (
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
             weth, // weth token address - sell token
-            usdc, // USDC token address - buy token
+            usdc // USDC token address - buy token
+            ),
+            OrderEngine.C (
             true, // is partially fillable
             "0x", // facilitator call data 
             "", // predicate calldata 
             "0x", // pre-interaction data 
             "0x" // post-interaction data 
+            )
         );
 
         uint amountIn = qouter.quoteExactOutputSingle(
             address(weth),
             address(usdc),
             500,
-            sellOrder.buyTokenAmount,
+            sellOrder.a.buyTokenAmount,
             0
         );
 
@@ -2354,14 +2366,14 @@ contract AdvancedOrderEngineTest is Test {
                     500,
                     address(advancedOrderEngine),
                     amountIn,
-                    sellOrder.buyTokenAmount,
+                    sellOrder.a.buyTokenAmount,
                     0
                 )
             )
         );
 
-        sellOrder.preInteraction = data;
-        // sellOrder.sellTokenAmount = amountIn;
+        sellOrder.c.preInteraction = data;
+        // sellOrder.a.sellTokenAmount = amountIn;
 
         orders = new OrderEngine.Order[](1);
 
@@ -2369,11 +2381,11 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](1);
 
-        sell[0] = sellOrder.sellTokenAmount;
+        sell[0] = sellOrder.a.sellTokenAmount;
 
         buy = new uint256[](1);
 
-        buy[0] = sellOrder.buyTokenAmount;
+        buy[0] = sellOrder.a.buyTokenAmount;
 
         signatures = new bytes[](1);
 
@@ -2402,7 +2414,7 @@ contract AdvancedOrderEngineTest is Test {
 
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         // uint afterWethMaker1 = weth.balanceOf(maker1);
-        assertEq(beforeUsdcMaker1 + sellOrder.buyTokenAmount, afterUsdcMaker1);
+        assertEq(beforeUsdcMaker1 + sellOrder.a.buyTokenAmount, afterUsdcMaker1);
         // assertEq(beforeWethMaker1, afterWethMaker1);
     }
 
@@ -2437,47 +2449,59 @@ contract AdvancedOrderEngineTest is Test {
 
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         uint afterWethMaker1 = weth.balanceOf(maker1);
-        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.sellTokenAmount);
-        assertEq(beforeWethMaker1 + order1.buyTokenAmount, afterWethMaker1);
+        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.a.sellTokenAmount);
+        assertEq(beforeWethMaker1 + order1.a.buyTokenAmount, afterWethMaker1);
     }
 
     function getOrder1() private view returns(OrderEngine.Order memory) {
         return OrderEngine.Order(
+            OrderEngine.A (
             123, // nonce value
             block.timestamp + 3600, // valid till
             4800000000000000, // 0.0048 weth - sell token
             10000000, // 10 USDC - buy amount
-            0, // fee
+            0 // fee
+            ),
+            OrderEngine.B (
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
             weth, // MATIC token address - sell token
-            usdc, // USDC token address - buy token
+            usdc // USDC token address - buy token
+            ),
+            OrderEngine.C (
             true, // is partially fillable
             "0x", // facilitator call data 
             "", // predicate calldata 
             "0x", // pre-interaction data 
             "0x" // post-interaction data 
+            )
         );
     }
 
     function getOrder2() private view returns(OrderEngine.Order memory) {
         return OrderEngine.Order(
+            OrderEngine.A (
             124, // nonce value
             block.timestamp + 3600, // valid till
             10000000, // 10 USDC - sell token amount
             4800000000000000, // 0.0048 weth - buy token amount
-            0, // fee
+            0 // fee
+            ),
+            OrderEngine.B (
             maker2, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker2, // Recipient's Ethereum address
             usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            weth // MATIC token address - buy token
+            ),
+            OrderEngine.C (
             true, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
             "0x", // pre-interaction data 
             "0x" // post-interaction data 
+            )
         );
     }
 
@@ -2503,13 +2527,13 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](2);
 
-        sell[0] = order2.sellTokenAmount;
-        sell[1] = order1.sellTokenAmount;
+        sell[0] = order2.a.sellTokenAmount;
+        sell[1] = order1.a.sellTokenAmount;
 
         buy = new uint256[](2);
 
-        buy[0] = order2.buyTokenAmount;
-        buy[1] = order1.buyTokenAmount;
+        buy[0] = order2.a.buyTokenAmount;
+        buy[1] = order1.a.buyTokenAmount;
 
         signatures = new bytes[](2);
 
@@ -2541,57 +2565,75 @@ contract AdvancedOrderEngineTest is Test {
     ) {
 
         order1 = OrderEngine.Order(
+            OrderEngine.A (
             124, // nonce value
             block.timestamp + 3600, // valid till
             10000000, // 10 USDC - sell token amount
             4800000000000000, // 0.0048 weth - buy token amount
-            0, // fee
+            0 // fee
+            ),
+            OrderEngine.B (
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
             usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            weth // MATIC token address - buy token
+            ),
+            OrderEngine.C (
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
             "0x", // pre-interaction data 
             "0x" // post-interaction data 
+            )
         );
 
         order2 = OrderEngine.Order(
+            OrderEngine.A (
             125, // nonce value
             block.timestamp + 3600, // valid till
             11000000, // 11 USDC - sell token amount
             4800000000000000, // 0.0048 weth - buy token amount
-            0, // fee
+            0 // fee
+            ),
+            OrderEngine.B (
             maker2, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker2, // Recipient's Ethereum address
             usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            weth // MATIC token address - buy token
+            ),
+            OrderEngine.C (
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
             "0x", // pre-interaction data 
             "0x" // post-interaction data 
+            )
         );
 
         order3 = OrderEngine.Order(
+            OrderEngine.A (
             126, // nonce value
             block.timestamp + 3600, // valid till
             0.0096 ether, // 0.0048 weth - sell token amount
             20000000, // 20 USDC - buy token amount
-            0, // fee
+            0 // fee
+            ),
+            OrderEngine.B (
             maker3, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker3, // Recipient's Ethereum address
             weth, // MATIC token address - sell token
-            usdc, // USDC token address - buy token
+            usdc // USDC token address - buy token
+            ),
+            OrderEngine.C (
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
             "0x", // pre-interaction data 
             "0x" // post-interaction data 
+            )
         );
 
         orders = new OrderEngine.Order[](3);
@@ -2602,15 +2644,15 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](3);
 
-        sell[0] = order3.sellTokenAmount;
-        sell[1] = order2.sellTokenAmount;        
-        sell[2] = order1.sellTokenAmount;
+        sell[0] = order3.a.sellTokenAmount;
+        sell[1] = order2.a.sellTokenAmount;        
+        sell[2] = order1.a.sellTokenAmount;
 
         buy = new uint256[](3);
 
-        buy[0] = order3.buyTokenAmount;
-        buy[1] = order2.buyTokenAmount;        
-        buy[2] = order1.buyTokenAmount;
+        buy[0] = order3.a.buyTokenAmount;
+        buy[1] = order2.a.buyTokenAmount;        
+        buy[2] = order1.a.buyTokenAmount;
 
         signatures = new bytes[](3);
 
@@ -2646,57 +2688,75 @@ contract AdvancedOrderEngineTest is Test {
     ) {
 
         order1 = OrderEngine.Order(
+            OrderEngine.A (
             124, // nonce value
             block.timestamp + 3600, // valid till
             10000000, // 10 USDC - sell token amount
             4800000000000000, // 0.0048 weth - buy token amount
-            0, // fee
+            0 // fee
+            ),
+            OrderEngine.B (
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
             usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            weth // MATIC token address - buy token
+            ),
+            OrderEngine.C (
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
             "0x", // pre-interaction data 
             "0x" // post-interaction data 
+            )
         );
 
         order2 = OrderEngine.Order(
+            OrderEngine.A (
             125, // nonce value
             block.timestamp + 3600, // valid till
             10000000, // 11 USDC - sell token amount
             4800000000000000, // 0.0048 weth - buy token amount
-            0, // fee
+            0 // fee
+            ),
+            OrderEngine.B (
             maker2, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker2, // Recipient's Ethereum address
             usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            weth // MATIC token address - buy token
+            ),
+            OrderEngine.C (
             true, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
             "0x", // pre-interaction data 
             "0x" // post-interaction data 
+            )
         );
 
         order3 = OrderEngine.Order(
+            OrderEngine.A (
             126, // nonce value
             block.timestamp + 3600, // valid till
             0.0072 ether, // 0.0048 weth - sell token amount
             15000000, // 20 USDC - buy token amount
-            0, // fee
+            0 // fee
+            ),
+            OrderEngine.B (
             maker3, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker3, // Recipient's Ethereum address
             weth, // MATIC token address - sell token
-            usdc, // USDC token address - buy token
+            usdc // USDC token address - buy token
+            ),
+            OrderEngine.C (
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
             "0x", // pre-interaction data 
             "0x" // post-interaction data 
+            )
         );
 
         orders = new OrderEngine.Order[](3);
@@ -2707,15 +2767,15 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](3);
 
-        sell[0] = order3.sellTokenAmount;
-        sell[1] = order2.sellTokenAmount / 2;        
-        sell[2] = order1.sellTokenAmount;
+        sell[0] = order3.a.sellTokenAmount;
+        sell[1] = order2.a.sellTokenAmount / 2;        
+        sell[2] = order1.a.sellTokenAmount;
 
         buy = new uint256[](3);
 
-        buy[0] = order3.buyTokenAmount;
-        buy[1] = order2.buyTokenAmount / 2;        
-        buy[2] = order1.buyTokenAmount;
+        buy[0] = order3.a.buyTokenAmount;
+        buy[1] = order2.a.buyTokenAmount / 2;        
+        buy[2] = order1.a.buyTokenAmount;
 
         signatures = new bytes[](3);
 
@@ -2759,21 +2819,27 @@ contract AdvancedOrderEngineTest is Test {
         );
 
         order1 = OrderEngine.Order(
+            OrderEngine.A (
             124, // nonce value
             block.timestamp + 3600, // valid till
             10000000, // 10 USDC - sell token amount
             amountOut, // 0.0048 weth - buy token amount
-            0, // fee
+            0 // fee
+            ),
+            OrderEngine.B (
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
             usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            weth // MATIC token address - buy token
+            ),
+            OrderEngine.C (
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
             "0x", // pre-interaction data 
             "0x" // post-interaction data 
+            )
         );
 
         address fs = address(new FacilitatorSwap());
@@ -2788,7 +2854,7 @@ contract AdvancedOrderEngineTest is Test {
                     address(weth),
                     500,
                     address(advancedOrderEngine),
-                    order1.sellTokenAmount,
+                    order1.a.sellTokenAmount,
                     amountOut,
                     0
                 )
@@ -2801,11 +2867,11 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](1);
 
-        sell[0] = order1.sellTokenAmount;
+        sell[0] = order1.a.sellTokenAmount;
 
         buy = new uint256[](1);
 
-        buy[0] = order1.buyTokenAmount;
+        buy[0] = order1.a.buyTokenAmount;
 
         signatures = new bytes[](1);
 
@@ -2816,7 +2882,7 @@ contract AdvancedOrderEngineTest is Test {
 
         facilitatorInteraction = data;
         borrowedAmounts = new uint256[](1);
-        borrowedAmounts[0] = order1.sellTokenAmount;
+        borrowedAmounts[0] = order1.a.sellTokenAmount;
 
         borrowedTokens = new IERC20[](1);
         borrowedTokens[0] = usdc;
@@ -2837,57 +2903,75 @@ contract AdvancedOrderEngineTest is Test {
     ) {
 
         order1 = OrderEngine.Order(
-            124, // nonce value
-            block.timestamp + 3600, // valid till
-            10000000, // 10 USDC - sell token amount
-            4800000000000000, // 0.0048 weth - buy token amount
-            0, // fee
-            maker1, // Maker's address
-            operator, // Taker's Ethereum address (or null for public order)
-            maker1, // Recipient's Ethereum address
-            usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
-            false, // is partially fillable
-            "0x", // facilitator calldata 
-            "", // predicate calldata 
-            "0x", // pre-interaction data 
-            "0x" // post-interaction data 
+            OrderEngine.A(
+                124, // nonce value
+                block.timestamp + 3600, // valid till
+                10000000, // 10 USDC - sell token amount
+                4800000000000000, // 0.0048 weth - buy token amount
+                0 // fee
+            ),
+            OrderEngine.B(
+                maker1, // Maker's address
+                operator, // Taker's Ethereum address (or null for public order)
+                maker1, // Recipient's Ethereum address
+                usdc, // USDC token address - sell token
+                weth // MATIC token address - buy token
+            ),
+            OrderEngine.C(
+                false, // is partially fillable
+                "0x", // facilitator calldata 
+                "", // predicate calldata 
+                "0x", // pre-interaction data 
+                "0x" // post-interaction data
+            ) 
         );
 
         order2 = OrderEngine.Order(
-            125, // nonce value
-            block.timestamp + 3600, // valid till
-            4800000000000000, // 0.0048 weth - sell token amount
-            13 ether, // 13 matic - sell token amount
-            0, // fee
-            maker2, // Maker's address
-            operator, // Taker's Ethereum address (or null for public order)
-            maker2, // Recipient's Ethereum address
-            weth, // MATIC token address - sell token
-            wmatic, // USDC token address - buy token
-            false, // is partially fillable
-            "0x", // facilitator calldata 
-            "", // predicate calldata 
-            "0x", // pre-interaction data 
-            "0x" // post-interaction data 
+            OrderEngine.A(
+                125, // nonce value
+                block.timestamp + 3600, // valid till
+                4800000000000000, // 0.0048 weth - sell token amount
+                13 ether, // 13 matic - sell token amount
+                0 // fee
+            ),
+            OrderEngine.B(
+                maker2, // Maker's address
+                operator, // Taker's Ethereum address (or null for public order)
+                maker2, // Recipient's Ethereum address
+                weth, // MATIC token address - sell token
+                wmatic // USDC token address - buy token
+            ),
+            OrderEngine.C(
+                false, // is partially fillable
+                "0x", // facilitator calldata 
+                "", // predicate calldata 
+                "0x", // pre-interaction data 
+                "0x" // post-interaction data
+            ) 
         );
 
         order3 = OrderEngine.Order(
-            126, // nonce value
-            block.timestamp + 3600, // valid till
-            13 ether, // 0.0048 weth - sell token amount
-            10000000, // 20 USDC - buy token amount
-            0, // fee
-            maker3, // Maker's address
-            operator, // Taker's Ethereum address (or null for public order)
-            maker3, // Recipient's Ethereum address
-            wmatic, // MATIC token address - sell token
-            usdc, // USDC token address - buy token
-            false, // is partially fillable
-            "0x", // facilitator calldata 
-            "", // predicate calldata 
-            "0x", // pre-interaction data 
-            "0x" // post-interaction data 
+            OrderEngine.A(
+                126, // nonce value
+                block.timestamp + 3600, // valid till
+                13 ether, // 0.0048 weth - sell token amount
+                10000000, // 20 USDC - buy token amount
+                0 // fee
+            ),
+            OrderEngine.B(
+                maker3, // Maker's address
+                operator, // Taker's Ethereum address (or null for public order)
+                maker3, // Recipient's Ethereum address
+                wmatic, // MATIC token address - sell token
+                usdc // USDC token address - buy token
+            ),
+            OrderEngine.C(
+                false, // is partially fillable
+                "0x", // facilitator calldata 
+                "", // predicate calldata 
+                "0x", // pre-interaction data 
+                "0x" // post-interaction data
+            ) 
         );
 
         orders = new OrderEngine.Order[](3);
@@ -2898,15 +2982,15 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](3);
 
-        sell[0] = order3.sellTokenAmount;
-        sell[1] = order2.sellTokenAmount;        
-        sell[2] = order1.sellTokenAmount;
+        sell[0] = order3.a.sellTokenAmount;
+        sell[1] = order2.a.sellTokenAmount;        
+        sell[2] = order1.a.sellTokenAmount;
 
         buy = new uint256[](3);
 
-        buy[0] = order3.buyTokenAmount;
-        buy[1] = order2.buyTokenAmount;       
-        buy[2] = order1.buyTokenAmount;
+        buy[0] = order3.a.buyTokenAmount;
+        buy[1] = order2.a.buyTokenAmount;       
+        buy[2] = order1.a.buyTokenAmount;
 
         signatures = new bytes[](3);
 

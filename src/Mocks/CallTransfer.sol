@@ -43,7 +43,7 @@ contract Helper is IFacilitatorInteractionNotificationReceiver {
 
             emit Swapped(
                 OrderEngine.hash(orders[i]),
-                orders[i].maker,
+                orders[i].b.maker,
                 address(borrowedTokens[i]),
                 borrowedAmounts[i],
                 interactionData,

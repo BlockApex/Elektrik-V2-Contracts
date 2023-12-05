@@ -345,16 +345,16 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
      * @param order Order to be canceled.
      */
     function cancelOrder(OrderEngine.Order calldata order) external {
-        if (order.maker != msg.sender) {
+        if (order.b.maker != msg.sender) {
             revert AccessDenied();
         }
         bytes32 orderHash = getOrderHash(order);
         uint256 currentFilledSellAmount = filledSellAmount[orderHash];
-        if (currentFilledSellAmount == order.sellTokenAmount) {
+        if (currentFilledSellAmount == order.a.sellTokenAmount) {
             revert OrderFilledAlready();
         }
         emit OrderCanceled(orderHash, currentFilledSellAmount);
-        filledSellAmount[orderHash] = order.sellTokenAmount;
+        filledSellAmount[orderHash] = order.a.sellTokenAmount;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -444,7 +444,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         uint256 executedFeeAmount;
 
         // If order is partially fillable.
-        if (order.isPartiallyFillable) {
+        if (order.c.isPartiallyFillable) {
             // Processes a partially fillable order, validates the limit price, updates filled amounts, and calculates executed fee.
             executedFeeAmount = _processPartiallyFillableOrder(
                 order,
@@ -456,12 +456,12 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         // If the order is fill or kill.
         else {
             // Revert if order's limit price is not respected.
-            if (order.buyTokenAmount > executedBuyAmount) {
+            if (order.a.buyTokenAmount > executedBuyAmount) {
                 revert LimitPriceNotRespected();
             }
 
-            executedSellAmount = order.sellTokenAmount;
-            executedFeeAmount = order.feeAmounts;
+            executedSellAmount = order.a.sellTokenAmount;
+            executedFeeAmount = order.a.feeAmounts;
 
             // Update the total filled sell amount for this order to match the order's original sell token amount.
             filledSellAmount[orderHash] = executedSellAmount;
@@ -471,8 +471,8 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         _validateOrderSignature(order, orderHash, signature);
 
         // Check predicate if it exists.
-        if (order.predicateCalldata.length > 0) {
-            if (!checkPredicate(order.predicateCalldata))
+        if (order.c.predicateCalldata.length > 0) {
+            if (!checkPredicate(order.c.predicateCalldata))
                 revert PredicateIsNotTrue();
         }
 
@@ -485,10 +485,10 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         );
 
         // Receive sell tokens from the maker.
-        _receiveAsset(order.sellToken, executedSellAmount, order.maker);
+        _receiveAsset(order.b.sellToken, executedSellAmount, order.b.maker);
 
         // Receive fees from the maker to the fee collector address.
-        _receiveAsset(order.sellToken, executedFeeAmount, feeCollector);
+        _receiveAsset(order.b.sellToken, executedFeeAmount, feeCollector);
     }
 
     function _validateOrder(
@@ -498,14 +498,14 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         bytes32 orderHash
     ) private view {
         // Revert if the order is expired.
-        if (block.timestamp > order.validTill) {
+        if (block.timestamp > order.a.validTill) {
             revert OrderExpired(orderHash);
         }
 
         // Revert if any amount in the order is zero.
         if (
-            order.buyTokenAmount == 0 ||
-            order.sellTokenAmount == 0 ||
+            order.a.buyTokenAmount == 0 ||
+            order.a.sellTokenAmount == 0 ||
             executedSellAmount == 0 ||
             executedBuyAmount == 0
         ) {
@@ -514,36 +514,36 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
 
         // Revert if either the buy token or the sell token is not whitelisted.
         if (
-            !isWhitelistedToken[order.buyToken] ||
-            !isWhitelistedToken[order.sellToken]
+            !isWhitelistedToken[order.b.buyToken] ||
+            !isWhitelistedToken[order.b.sellToken]
         ) {
             revert TokenNotWhitelisted();
         }
 
         // Revert if buy token and sell token are equal
         if (
-            order.sellToken == order.buyToken
+            order.b.sellToken == order.b.buyToken
         ) {
             revert SameBuyAndSellToken();
         }
 
         // Revert if any address in the order is zero.
         if (
-            order.maker == address(0) ||
-            address(order.buyToken) == address(0) ||
-            address(order.sellToken) == address(0) ||
-            order.recipient == address(0)
+            order.b.maker == address(0) ||
+            address(order.b.buyToken) == address(0) ||
+            address(order.b.sellToken) == address(0) ||
+            order.b.recipient == address(0)
         ) {
             revert ZeroAddress();
         }
 
         // Revert if the private order is not sent by the operator.
-        if (order.operator != address(0) && order.operator != msg.sender) {
+        if (order.b.operator != address(0) && order.b.operator != msg.sender) {
             revert PrivateOrder();
         }
 
         // Revert if the order is already filled.
-        if (filledSellAmount[orderHash] == order.sellTokenAmount) {
+        if (filledSellAmount[orderHash] == order.a.sellTokenAmount) {
             revert OrderFilledAlready();
         }
     }
@@ -557,7 +557,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         // Revert if order's limit price is not respected.
         if (
             (executedSellAmount * ONE) / executedBuyAmount >
-            (order.sellTokenAmount * ONE) / order.buyTokenAmount
+            (order.a.sellTokenAmount * ONE) / order.a.buyTokenAmount
         ) {
             revert LimitPriceNotRespected();
         }
@@ -567,11 +567,11 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
 
         // Calculate the executed fee amount based on the proportion of the executed sell amount to the total sell amount.
         executedFeeAmount =
-            (order.feeAmounts * executedSellAmount) /
-            order.sellTokenAmount;
+            (order.a.feeAmounts * executedSellAmount) /
+            order.a.sellTokenAmount;
 
         // Revert if the total filled sell amount surpasses the order's original sell token amount.
-        if (filledSellAmount[orderHash] > order.sellTokenAmount) {
+        if (filledSellAmount[orderHash] > order.a.sellTokenAmount) {
             revert ExceedsOrderSellAmount();
         }
     }
@@ -584,7 +584,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         // If the order maker address is a smart contract address.
         if (order.isContract()) {
             if (
-                !(IERC1271(order.maker).isValidSignature(
+                !(IERC1271(order.b.maker).isValidSignature(
                     orderHash,
                     signature
                 ) == IERC1271.isValidSignature.selector)
@@ -595,7 +595,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         // If the order maker address it an EOA.
         else {
             address signer = ECDSA.recover(orderHash, signature);
-            if (signer != order.maker) {
+            if (signer != order.b.maker) {
                 revert InvalidSignature();
             }
         }
@@ -608,8 +608,8 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         uint256 executedBuyAmount
     ) private {
         // Execute only if the order's preInteraction length is sufficient to store an address.
-        if (order.preInteraction.length >= 20) {
-            (address interactionTarget, bytes calldata interactionData) = order
+        if (order.c.preInteraction.length >= 20) {
+            (address interactionTarget, bytes calldata interactionData) = order.c
                 .preInteraction
                 .decodeTargetAndCalldata();
 
@@ -620,7 +620,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
             IPreInteractionNotificationReceiver(interactionTarget)
                 .fillOrderPreInteraction(
                     orderHash,
-                    order.maker,
+                    order.b.maker,
                     executedSellAmount,
                     executedBuyAmount,
                     filledSellAmount[orderHash],
@@ -697,7 +697,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         bytes32 orderHash = getOrderHash(order);
 
         // Transfer the buy tokens to the recipient.
-        _sendAsset(order.buyToken, executedBuyAmount, order.recipient);
+        _sendAsset(order.b.buyToken, executedBuyAmount, order.b.recipient);
 
         // Local copy to save gas.
         uint256 sellTokensFilled = filledSellAmount[orderHash];
@@ -723,8 +723,8 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         uint256 sellTokensFilled
     ) private {
         // Execute only if the order's peostsInteraction length is sufficient to store an address.
-        if (order.postInteraction.length >= 20) {
-            (address interactionTarget, bytes calldata interactionData) = order
+        if (order.c.postInteraction.length >= 20) {
+            (address interactionTarget, bytes calldata interactionData) = order.c
                 .postInteraction
                 .decodeTargetAndCalldata();
 
@@ -735,7 +735,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
             IPostInteractionNotificationReceiver(interactionTarget)
                 .fillOrderPostInteraction(
                     orderHash,
-                    order.maker,
+                    order.b.maker,
                     executedSellAmount,
                     executedBuyAmount,
                     sellTokensFilled,

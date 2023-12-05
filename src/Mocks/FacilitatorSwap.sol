@@ -34,7 +34,7 @@ contract FacilitatorSwap is IFacilitatorInteractionNotificationReceiver {
 
         emit Swapped(
             OrderEngine.hash(orders[0]),
-            orders[0].maker,
+            orders[0].b.maker,
             address(borrowedTokens[0]),
             borrowedAmounts[0],
             interactionData,

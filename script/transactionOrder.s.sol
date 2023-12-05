@@ -42,13 +42,13 @@ contract TransactionScript is Script {
 
         uint256[] memory sell = new uint256[](2);
 
-        sell[0] = sellOrder.sellTokenAmount;
-        sell[1] = buyOrder.sellTokenAmount;
+        sell[0] = sellOrder.a.sellTokenAmount;
+        sell[1] = buyOrder.a.sellTokenAmount;
 
         uint256[] memory buy = new uint256[](2);
 
-        buy[0] = sellOrder.buyTokenAmount;
-        buy[1] = buyOrder.buyTokenAmount;
+        buy[0] = sellOrder.a.buyTokenAmount;
+        buy[1] = buyOrder.a.buyTokenAmount;
 
         bytes[] memory sigs = new bytes[](2);
 
@@ -83,41 +83,53 @@ contract TransactionScript is Script {
 
     function getDummyBuyOrder() private view returns(OrderEngine.Order memory) {
         return OrderEngine.Order(
+            OrderEngine.A (
             1,
             1700948778,
             10000000,
             4800000000000000,
-            0,
+            0
+            ),
+            OrderEngine.B (
             maker1,
             owner,
             maker1,
             usdc,
-            wmatic,
+            wmatic
+            ), 
+            OrderEngine.C (
             true,
             0x0000000000000000000000000000000000000000000000000000000000000000,
             "",
             '0x',
             '0x'
+            )
         );
     }
 
     function getDummySellOrder() private view returns(OrderEngine.Order memory) {
         return OrderEngine.Order(
+            OrderEngine.A (
             2,
             1700948778,
             4800000000000000,
             10000000,
-            0,
+            0
+            ),
+            OrderEngine.B (
             maker2,
             owner,
             maker2,
             wmatic,
-            usdc,
+            usdc
+            ), 
+            OrderEngine.C (
             true,
             0x0000000000000000000000000000000000000000000000000000000000000000,
             '',
             '0x',
             '0x'
+            )
         );
     }
 
