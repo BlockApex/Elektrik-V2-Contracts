@@ -174,10 +174,10 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
                 revert ZeroAddress();
             }
 
-            // Revert if the access status remains unchanged.
-            if (isWhitelistedToken[tokens[i]] == access[i]) {
-                revert AccessStatusUnchanged();
-            }
+            // // Revert if the access status remains unchanged.
+            // if (isWhitelistedToken[tokens[i]] == access[i]) {
+            //     revert AccessStatusUnchanged();
+            // }
 
             isWhitelistedToken[tokens[i]] = access[i];
 
