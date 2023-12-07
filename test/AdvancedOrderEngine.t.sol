@@ -2441,6 +2441,33 @@ contract AdvancedOrderEngineTest is Test {
         assertEq(beforeWethMaker1 + order1.buyTokenAmount, afterWethMaker1);
     }
 
+    function testStress() public {
+
+        vm.startPrank(operator);
+
+        (
+            OrderEngine.Order[] memory orders,
+            uint256[] memory sell,
+            uint256[] memory buy,
+            bytes[] memory signatures,
+            bytes memory facilitatorInteraction,
+            IERC20[] memory borrowedTokens,
+            uint256[] memory borrowedAmounts
+        ) = getStandardInput5();
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+    }
+
     function getOrder1() private view returns(OrderEngine.Order memory) {
         return OrderEngine.Order(
             123, // nonce value
@@ -2926,6 +2953,95 @@ contract AdvancedOrderEngineTest is Test {
         facilitatorInteraction = "0x";
         borrowedAmounts = new uint256[](0);
         borrowedTokens = new IERC20[](0);
+    }
+
+    function getStandardInput5() private view returns(
+        OrderEngine.Order[] memory orders,
+        uint256[] memory sell,
+        uint256[] memory buy,
+        bytes[] memory signatures,
+        bytes memory facilitatorInteraction,
+        IERC20[] memory borrowedTokens,
+        uint256[] memory borrowedAmounts
+    ) {
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+        uint size = 200;
+        bytes memory sellOrderSignature;
+        borrowedAmounts = new uint256[](0);
+        borrowedTokens = new IERC20[](0);
+        facilitatorInteraction = "0x";
+        orders = new OrderEngine.Order[](size + size);
+        sell = new uint256[](size + size);
+        buy = new uint256[](size + size);
+        signatures = new bytes[](size + size);
+
+        for (uint i = 0; i < size; i++) {
+
+            // console2.log(i);
+
+            orders[i] = OrderEngine.Order(
+                i, // nonce value
+                block.timestamp + 3600, // valid till
+                48000000000000, // 0.00048 weth - sell token
+                100000, // 1 USDC - buy amount
+                0, // fee
+                maker1, // Maker's address
+                operator, // Taker's Ethereum address (or null for public order)
+                maker1, // Recipient's Ethereum address
+                weth, // MATIC token address - sell token
+                usdc, // USDC token address - buy token
+                true, // is partially fillable
+                "0x", // facilitator call data 
+                "", // predicate calldata 
+                "0x", // pre-interaction data 
+                "0x" // post-interaction data 
+            );
+
+            sell[i] = orders[i].sellTokenAmount;
+            
+            buy[i] = orders[i].buyTokenAmount;
+
+            (v,r,s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(orders[i])));
+            sellOrderSignature = abi.encodePacked(r, s, v);
+
+            signatures[i] = sellOrderSignature;
+            
+        }
+
+        for (uint i = size; i < (size + size); i++) {
+
+            // console2.log(i);
+
+            orders[i] = OrderEngine.Order(
+                i, // nonce value
+                block.timestamp + 3600, // valid till
+                100000, // 10 USDC - sell token amount
+                48000000000000, // 0.0048 weth - buy token amount
+                0, // fee
+                maker2, // Maker's address
+                operator, // Taker's Ethereum address (or null for public order)
+                maker2, // Recipient's Ethereum address
+                usdc, // USDC token address - sell token
+                weth, // MATIC token address - buy token
+                true, // is partially fillable
+                "0x", // facilitator calldata 
+                "", // predicate calldata 
+                "0x", // pre-interaction data 
+                "0x" // post-interaction data 
+            );
+
+            sell[i] = orders[i].sellTokenAmount;
+            
+            buy[i] = orders[i].buyTokenAmount;
+
+            (v,r,s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(orders[i])));
+            sellOrderSignature = abi.encodePacked(r, s, v);
+
+            signatures[i] = sellOrderSignature;
+            
+        }
     }
 
     function _hashTypedDataV4(bytes32 structHash) internal view virtual returns (bytes32) {
