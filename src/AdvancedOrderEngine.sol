@@ -256,7 +256,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         uint amount,
         address to
     ) external onlyOwner {
-        // Revert if the new fee collector address is a zero address.
+        // Revert if the token address or the to address is a zero address.
         if (token == address(0) || to == address(0)) {
             revert ZeroAddress();
         }
