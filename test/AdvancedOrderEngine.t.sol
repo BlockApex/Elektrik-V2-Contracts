@@ -2441,6 +2441,41 @@ contract AdvancedOrderEngineTest is Test {
         assertEq(beforeWethMaker1 + order1.buyTokenAmount, afterWethMaker1);
     }
 
+    function testFacilitatorSwapExactInput() public {
+        uint beforeUsdcMaker1 = usdc.balanceOf(maker1);
+        uint beforeWethMaker1 = weth.balanceOf(maker1);
+
+        (
+        OrderEngine.Order[] memory orders,
+        uint256[] memory sell,
+        uint256[] memory buy,
+        bytes[] memory signatures,
+        bytes memory facilitatorInteraction,
+        IERC20[] memory borrowedTokens,
+        uint256[] memory borrowedAmounts,
+        OrderEngine.Order memory order1,
+        ) = getStandardInput3();
+
+        vm.startPrank(operator);
+
+        advancedOrderEngine.fillOrders(
+            orders,
+            sell,
+            buy,
+            signatures,
+            facilitatorInteraction,
+            borrowedTokens,
+            borrowedAmounts
+        );
+
+        vm.stopPrank();
+
+        uint afterUsdcMaker1 = usdc.balanceOf(maker1);
+        uint afterWethMaker1 = weth.balanceOf(maker1);
+        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.sellTokenAmount);
+        assertEq(beforeWethMaker1 + order1.buyTokenAmount, afterWethMaker1);
+    }
+
     function testStress() public {
 
         vm.startPrank(operator);
@@ -3042,6 +3077,97 @@ contract AdvancedOrderEngineTest is Test {
             signatures[i] = sellOrderSignature;
             
         }
+    }
+
+    function getStandardInput6() private returns(
+        OrderEngine.Order[] memory orders,
+        uint256[] memory sell,
+        uint256[] memory buy,
+        bytes[] memory signatures,
+        bytes memory facilitatorInteraction,
+        IERC20[] memory borrowedTokens,
+        uint256[] memory borrowedAmounts,
+        OrderEngine.Order memory order1,
+        bytes memory data
+    ) {
+        uint amountIn = 10000000; // sell amount
+        uint amountOut = qouter.quoteExactInput(
+            abi.encodePacked (
+                address(usdc),
+                uint24(3000),
+                address(wbtc),
+                uint24(3000),
+                address(weth)
+            ),
+            amountIn
+        );
+
+        order1 = OrderEngine.Order(
+            124, // nonce value
+            block.timestamp + 3600, // valid till
+            amountIn, // 10 USDC - sell token amount
+            amountOut, // 0.0048 weth - buy token amount
+            0, // fee
+            maker1, // Maker's address
+            operator, // Taker's Ethereum address (or null for public order)
+            maker1, // Recipient's Ethereum address
+            usdc, // USDC token address - sell token
+            weth, // MATIC token address - buy token
+            false, // is partially fillable
+            "0x", // facilitator calldata 
+            "", // predicate calldata 
+            "0x", // pre-interaction data 
+            "0x" // post-interaction data 
+        );
+
+        address fs = address(new FacilitatorSwap());
+        FacilitatorSwap(fs).approve(address(usdc), address(swapRouter02), UINT256_MAX);
+
+        data = abi.encodePacked(
+            fs,
+            abi.encodeWithSelector(
+                swapRouter02.exactInput.selector,
+                ISwapRouter02.ExactInputParams (
+                    abi.encodePacked (
+                        address(usdc),
+                        uint24(3000),
+                        address(wbtc),
+                        uint24(3000),
+                        address(weth)
+                    ),
+                    address(advancedOrderEngine),
+                    order1.sellTokenAmount,
+                    amountOut
+                )
+            )
+        );
+
+        orders = new OrderEngine.Order[](1);
+
+        orders[0] = order1;
+
+        sell = new uint256[](1);
+
+        sell[0] = order1.sellTokenAmount;
+
+        buy = new uint256[](1);
+
+        buy[0] = order1.buyTokenAmount;
+
+        signatures = new bytes[](1);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(order1)));
+        bytes memory order1Signature = abi.encodePacked(r, s, v);
+
+        signatures[0] = order1Signature;
+
+        facilitatorInteraction = data;
+        borrowedAmounts = new uint256[](1);
+        borrowedAmounts[0] = order1.sellTokenAmount;
+
+        borrowedTokens = new IERC20[](1);
+        borrowedTokens[0] = usdc;
+
     }
 
     function _hashTypedDataV4(bytes32 structHash) internal view virtual returns (bytes32) {
