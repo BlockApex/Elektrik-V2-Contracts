@@ -27,7 +27,7 @@ contract AdvancedOrderEngineTest is Test {
     IERC20 wmatic = IERC20(0x7c9f4C87d911613Fe9ca58b579f737911AAD2D43);
     IERC20 usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
     IWETH9 weth = IWETH9(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-    IERC20 wbtc = IERC20(0x9Ee1Aa18F3FEB435f811d6AE2F71B7D2a4Adce0B);
+    IERC20 wbtc = IERC20(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
     ISwapRouter02 swapRouter02 = ISwapRouter02(0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45);
     IPriceFeed usdc_eth = IPriceFeed(0x986b5E1e1755e3C2440e960477f25201B0a8bbD4);
     IQuoter qouter = IQuoter(0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6);
@@ -2454,7 +2454,7 @@ contract AdvancedOrderEngineTest is Test {
         IERC20[] memory borrowedTokens,
         uint256[] memory borrowedAmounts,
         OrderEngine.Order memory order1,
-        ) = getStandardInput3();
+        ) = getStandardInput6();
 
         vm.startPrank(operator);
 
