@@ -2,6 +2,7 @@
 pragma solidity ^0.8.21;
 
 import "forge-std/Test.sol";
+import "forge-std/console.sol";
 import "./../src/Predicates.sol";
 import "./../src/interfaces/IPredicates.sol";
 import "./../src/AdvancedOrderEngine.sol";
@@ -223,6 +224,7 @@ contract EngineFuzzTest is Test {
 
     function testFuzz(uint256 buy_qty, uint256 sell_qty) public {
         vm.assume(buy_qty > 0 && sell_qty > 0);
+
         uint256 maker1WETHBalance = weth.balanceOf(address(maker1));
         uint256 maker1USDCBalance = usdc.balanceOf(address(maker1));
 
@@ -241,14 +243,14 @@ contract EngineFuzzTest is Test {
         // require(buy_qty <= maker1USDCBalance && buy_qty <= maker2USDCBalance && buy_qty <= maker1WETHBalance && buy_qty <= maker2WETHBalance, "Buy quantity exceeds balance");
         // require(sell_qty <= maker1USDCBalance && sell_qty <= maker2USDCBalance && sell_qty <= maker1WETHBalance && sell_qty <= maker2WETHBalance, "Sell quantity exceeds balance");
 
-        require(
-            buy_qty <= maker1WETHBalance && buy_qty <= maker2USDCBalance,
-            "Buy quantity exceeds WETH or USDC balance"
-        );
-        require(
-            sell_qty <= maker1USDCBalance && sell_qty <= maker2WETHBalance,
-            "Sell quantity exceeds USDC or WETH balance"
-        );
+        // 1000000000000000000 > 10000000000000000000000000 || 1 > 46984
+        if (buy_qty * 1 ether > maker1WETHBalance || buy_qty * 1000000 > maker2USDCBalance){
+            vm.expectRevert();}
+        // 46988000000 > 46987799359 || 46988000000000000000000 > 10000000000000000000000000
+        if (sell_qty * 1000000 > maker1USDCBalance || sell_qty * 1 ether> maker2WETHBalance){
+            vm.expectRevert();}
+            
+    
 
         vm.startPrank(operator);
 
@@ -263,7 +265,29 @@ contract EngineFuzzTest is Test {
             uint256[] memory borrowedAmounts
         ) = orderInput(buy_qty, sell_qty);
 
-        require(orders.length >= 2);
+        // Calculate total sell and buy amounts for each token
+    uint256 totalSellWETH = 0;
+    uint256 totalBuyWETH = 0;
+    uint256 totalSellUSDC = 0;
+    uint256 totalBuyUSDC = 0;
+
+    for (uint i = 0; i < orders.length; i++) {
+        if (address(orders[i].sellToken) == address(weth)) {
+            totalSellWETH += sell[i];
+            totalBuyUSDC += buy[i];
+        } else if (address(orders[i].sellToken) == address(usdc)) {
+            totalSellUSDC += sell[i];
+            totalBuyWETH += buy[i];
+        }
+    }
+    if (totalSellWETH != totalBuyWETH && totalSellUSDC != totalBuyUSDC){
+        vm.expectRevert();
+
+    }
+    
+
+
+        //require(orders.length >= 2);
         advancedOrderEngine.fillOrders(
             orders,
             sell,
@@ -301,13 +325,13 @@ contract EngineFuzzTest is Test {
         buy = new uint256[](size * 2);
         signatures = new bytes[](size * 2);
 
-        OrderEngine.Order memory order1 = getOrder1();
-        orders[0] = order1;
-        sell[0] = order1.sellTokenAmount;
-        buy[0] = order1.buyTokenAmount;
-        signatures[0] = signOrder(orders[0], maker1PrivateKey);
+        // OrderEngine.Order memory order1 = getOrder1();
+        // orders[0] = order1;
+        // sell[0] = order1.sellTokenAmount;
+        // buy[0] = order1.buyTokenAmount;
+        // signatures[0] = signOrder(orders[0], maker1PrivateKey);
 
-        for (uint i = 1; i < size; i++) {
+        for (uint i = 0; i < size; i++) {
             // Creating a sell order
             (uint256 sellAmount, uint256 buyAmount) = getRandomOrderAmounts(
                 maker1,
@@ -352,7 +376,14 @@ contract EngineFuzzTest is Test {
                 orders[size + i],
                 maker2PrivateKey
             );
+            // printOrder(orders[i]);
+            // printOrder(orders[i+size]);
         }
+
+        
+        
+        
+
     }
 
     function createOrder(
@@ -396,7 +427,8 @@ contract EngineFuzzTest is Test {
     function determineOrderSize() private view returns (uint) {
         uint256 blockGasLimit = block.gaslimit; // Get the current block gas limit
         uint256 estimatedGasPerTransaction = 21000; // Estimate gas per transaction (adjust as needed)
-        return 5; // Calculate the safe number of orders
+        //return 5; // Calculate the safe number of orders
+        return 1000;
     }
 
     function getRandomOrderAmounts(
@@ -463,5 +495,24 @@ contract EngineFuzzTest is Test {
                 "0x", // pre-interaction data
                 "0x" // post-interaction data
             );
+    }
+
+    function printOrder(OrderEngine.Order memory order) internal view {
+        console2.log("order: ");
+        console2.log(order.nonce);
+        console2.log(order.validTill);
+        console2.log(order.sellTokenAmount);
+        console2.log(order.buyTokenAmount);
+        console2.log(order.feeAmounts);
+        console2.log(order.maker);
+        console2.log(order.operator);
+        console2.log(order.recipient);
+        console2.log(address(order.sellToken));
+        console2.log(address(order.buyToken));
+        console2.log(order.isPartiallyFillable);
+        console2.logBytes32(order.extraData);
+        console2.logBytes(order.predicateCalldata);
+        console2.logBytes(order.preInteraction);
+        console2.logBytes(order.postInteraction);
     }
 }
