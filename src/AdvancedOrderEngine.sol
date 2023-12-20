@@ -488,7 +488,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         _receiveAsset(order.sellToken, executedSellAmount, order.maker);
 
         // Receive fees from the maker to the fee collector address.
-        _receiveAsset(order.sellToken, executedFeeAmount, feeCollector);
+        if(executedFeeAmount != 0) { _receiveAsset(order.sellToken, executedFeeAmount, feeCollector); }
     }
 
     function _validateOrder(
