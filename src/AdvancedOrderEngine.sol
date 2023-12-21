@@ -58,7 +58,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
                                 EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event OrderFill(bytes32 orderHash, uint256 filledSellAmount);
+    event OrderFill(bytes32 orderHash, uint256 filledSellAmount, uint executedSellAmount, uint256 executedBuyAmount, address indexed sellToken, address indexed buyToken, uint256 nonce, uint256 executedFee);
     event OperatorAccessModified(address indexed authorized, bool access);
     event OrderCanceled(bytes32 orderHash, uint256 filledSellAmount);
     event FeeCollectorChanged(
@@ -712,7 +712,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         );
 
         // Emit an event to log the order fill.
-        emit OrderFill(orderHash, sellTokensFilled);
+        emit OrderFill(orderHash, sellTokensFilled, executedSellAmount, executedBuyAmount, address(order.sellToken), address(order.buyToken), order.nonce, order.feeAmounts);
     }
 
     function _executePostInteraction(
