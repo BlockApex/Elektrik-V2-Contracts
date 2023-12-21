@@ -58,7 +58,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
                                 EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event OrderFill(bytes32 orderHash, uint256 filledSellAmount);
+    event OrderFill(bytes32 orderHash, uint256 filledSellAmount, uint executedSellAmount, uint256 executedBuyAmount, address indexed sellToken, address indexed buyToken, uint256 nonce, uint256 executedFee);
     event OperatorAccessModified(address indexed authorized, bool access);
     event OrderCanceled(bytes32 orderHash, uint256 filledSellAmount);
     event FeeCollectorChanged(
@@ -92,7 +92,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
             revert ZeroAddress();
         }
 
-        feeCollectorAddr = feeCollectorAddr;
+        feeCollector = feeCollectorAddr;
         predicates = predicatesAddr;
 
         emit FeeCollectorChanged(address(0), feeCollectorAddr);
@@ -174,18 +174,18 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
                 revert ZeroAddress();
             }
 
-            // Revert if the access status remains unchanged.
-            if (isWhitelistedToken[tokens[i]] == access[i]) {
-                revert AccessStatusUnchanged();
-            }
+            // // Revert if the access status remains unchanged.
+            // if (isWhitelistedToken[tokens[i]] == access[i]) {
+            //     revert AccessStatusUnchanged();
+            // }
 
             isWhitelistedToken[tokens[i]] = access[i];
+
+            emit WhitelistStatusUpdated(address(tokens[i]), access[i]);
 
             unchecked {
                 ++i;
             }
-
-            emit WhitelistStatusUpdated(address(tokens[i]), access[i]);
         }
     }
 
@@ -242,6 +242,27 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         emit FeeCollectorChanged(currentFeeCollector, newFeeCollectorAddr);
 
         feeCollector = newFeeCollectorAddr;
+    }
+
+    /**
+     * @notice collect leftover tokens.
+     * @dev Only callable by the owner.
+     * @param token token's contract address
+     * @param amount amount you want to transfer
+     * @param to address you want to transfer funds to
+     */
+    function withdraw (
+        address token,
+        uint amount,
+        address to
+    ) external onlyOwner {
+        // Revert if the token address or the to address is a zero address.
+        if (token == address(0) || to == address(0)) {
+            revert ZeroAddress();
+        }
+
+        _sendAsset(IERC20(token), amount, to);
+
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -467,7 +488,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         _receiveAsset(order.sellToken, executedSellAmount, order.maker);
 
         // Receive fees from the maker to the fee collector address.
-        _receiveAsset(order.sellToken, executedFeeAmount, feeCollector);
+        if(executedFeeAmount != 0) { _receiveAsset(order.sellToken, executedFeeAmount, feeCollector); }
     }
 
     function _validateOrder(
@@ -497,6 +518,13 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
             !isWhitelistedToken[order.sellToken]
         ) {
             revert TokenNotWhitelisted();
+        }
+
+        // Revert if buy token and sell token are equal
+        if (
+            order.sellToken == order.buyToken
+        ) {
+            revert SameBuyAndSellToken();
         }
 
         // Revert if any address in the order is zero.
@@ -684,7 +712,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         );
 
         // Emit an event to log the order fill.
-        emit OrderFill(orderHash, sellTokensFilled);
+        emit OrderFill(orderHash, sellTokensFilled, executedSellAmount, executedBuyAmount, address(order.sellToken), address(order.buyToken), order.nonce, order.feeAmounts);
     }
 
     function _executePostInteraction(
