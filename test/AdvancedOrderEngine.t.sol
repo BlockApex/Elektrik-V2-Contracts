@@ -46,6 +46,7 @@ contract AdvancedOrderEngineTest is Test {
 
 
     function setUp() public {
+        vm.createSelectFork(vm.envString("MAINNET_RPC_URL"), 18561278);
         vm.startPrank(admin);
 
         predicates = new Predicates();
@@ -188,7 +189,7 @@ contract AdvancedOrderEngineTest is Test {
             ISwapRouter02.ExactInputSingleParams (
                 address(weth),
                 address(usdc),
-                500,
+                3000,
                 operator,
                 1 ether,
                 0,
