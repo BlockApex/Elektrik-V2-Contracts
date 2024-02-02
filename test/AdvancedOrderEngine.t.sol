@@ -36,11 +36,11 @@ contract AdvancedOrderEngineTest is Test {
     address feeCollector = address(147578);
     address admin = address(3);
     uint256 maker1PrivateKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
-    address maker1 = vm.addr(maker1PrivateKey);
+    address maker1 = vm.addr(maker1PrivateKey); // 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
     uint256 maker2PrivateKey = 0xac0974bec39a17e36ba4a6b4d233ff944bacb478cbed5efcae784d7bf4f2ff80;
-    address maker2 = vm.addr(maker2PrivateKey);
+    address maker2 = vm.addr(maker2PrivateKey); // 0xB60397D6aFedC75370De0Dc16eD96675D3c50b79
     uint256 maker3PrivateKey = 0xac0974bec38a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
-    address maker3 = vm.addr(maker3PrivateKey);
+    address maker3 = vm.addr(maker3PrivateKey); // 
     uint256 operatorPrivateKey = 0xB0B; 
     address operator = vm.addr(operatorPrivateKey);
 
@@ -404,9 +404,9 @@ contract AdvancedOrderEngineTest is Test {
             bytes[] memory signatures,
             bytes memory facilitatorInteraction,
             IERC20[] memory borrowedTokens,
-            uint256[] memory borrowedAmounts,
-            OrderEngine.Order memory buyOrder,
-            OrderEngine.Order memory sellOrder
+            uint256[] memory borrowedAmounts,,
+            // OrderEngine.Order memory buyOrder,
+            // OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
         advancedOrderEngine.fillOrders(
@@ -426,10 +426,10 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         uint afterWethMaker1 = weth.balanceOf(maker1);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.sellTokenAmount);
-        assertEq(beforeWethMaker2 + sellOrder.buyTokenAmount, afterWethMaker2);
-        assertEq(beforeUsdcMaker1 + buyOrder.buyTokenAmount, afterUsdcMaker1);
-        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sell[0] / 1e18);
+        assertEq(beforeWethMaker2 + buy[0] / 1e18, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buy[1] / 1e18, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + sell[1] / 1e18);
     }
 
     function testRingOrders() public {
@@ -449,10 +449,10 @@ contract AdvancedOrderEngineTest is Test {
             bytes[] memory signatures,
             bytes memory facilitatorInteraction,
             IERC20[] memory borrowedTokens,
-            uint256[] memory borrowedAmounts,
-            OrderEngine.Order memory order1,
-            OrderEngine.Order memory order2,
-            OrderEngine.Order memory order3
+            uint256[] memory borrowedAmounts,,,
+            // OrderEngine.Order memory order1,
+            // OrderEngine.Order memory order2,
+            // OrderEngine.Order memory order3
         ) = getStandardInput4();
 
         advancedOrderEngine.fillOrders(
@@ -474,12 +474,12 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker3 = usdc.balanceOf(maker3);
         uint afterMaticMaker3 = wmatic.balanceOf(maker3);
 
-        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + order1.sellTokenAmount);
-        assertEq(beforeWethMaker1 + order1.buyTokenAmount , afterWethMaker1);
-        assertEq(beforeWethMaker2, afterWethMaker2 + order2.sellTokenAmount);
-        assertEq(beforeMaticMaker2 + order2.buyTokenAmount, afterMaticMaker2);
-        assertEq(beforeMaticMaker3, afterMaticMaker3 + order3.sellTokenAmount);
-        assertEq(beforeUsdcMaker3 + order3.buyTokenAmount, afterUsdcMaker3);
+        assertEq(beforeUsdcMaker1, afterUsdcMaker1 + sell[2] / 1e18);
+        assertEq(beforeWethMaker1 + buy[2] / 1e18 , afterWethMaker1);
+        assertEq(beforeWethMaker2, afterWethMaker2 + sell[1] / 1e18);
+        assertEq(beforeMaticMaker2 + buy[1] / 1e18, afterMaticMaker2);
+        assertEq(beforeMaticMaker3, afterMaticMaker3 + sell[0] / 1e18);
+        assertEq(beforeUsdcMaker3 + buy[0] / 1e18, afterUsdcMaker3);
     }
 
     function testFillOrderInChunks() public {
@@ -540,10 +540,10 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         uint afterWethMaker1 = weth.balanceOf(maker1);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + order2.sellTokenAmount);
-        assertEq(beforeWethMaker2 + order2.buyTokenAmount, afterWethMaker2);
-        assertEq(beforeUsdcMaker1 + order1.buyTokenAmount, afterUsdcMaker1);
-        assertEq(beforeWethMaker1 , afterWethMaker1 + order1.sellTokenAmount);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sell[0] / 1e18);
+        assertEq(beforeWethMaker2 + buy[0] / 1e18, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buy[1] / 1e18, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + sell[1] / 1e18);
     }
 
     function testNoOrderInputFillOrders() public {
@@ -921,10 +921,10 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         uint afterWethMaker1 = weth.balanceOf(maker1);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.sellTokenAmount / 2);
-        assertEq(beforeWethMaker2 + sellOrder.buyTokenAmount / 2, afterWethMaker2);
-        assertEq(beforeUsdcMaker1 + buyOrder.buyTokenAmount / 2, afterUsdcMaker1);
-        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount / 2);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sell[0] / (1e18 * 2));
+        assertEq(beforeWethMaker2 + buy[0] / (1e18 * 2), afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buy[1] / (1e18 * 2), afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + sell[1] / (1e18 * 2));
     }
 
     function testExceedsOrderSellAmount() public {
@@ -943,10 +943,10 @@ contract AdvancedOrderEngineTest is Test {
             OrderEngine.Order memory sellOrder
         ) = getStandardInput();
 
-        sell[0] = sellOrder.sellTokenAmount * 2;
-        sell[1] = buyOrder.sellTokenAmount * 2;
-        buy[0] = sellOrder.buyTokenAmount * 2;
-        buy[1] = buyOrder.buyTokenAmount * 2;
+        sell[0] = sellOrder.sellTokenAmount * 2 * 1e18;
+        sell[1] = buyOrder.sellTokenAmount * 2 * 1e18;
+        buy[0] = sellOrder.buyTokenAmount * 2 * 1e18;
+        buy[1] = buyOrder.buyTokenAmount * 2 * 1e18;
 
         vm.expectRevert(ExceedsOrderSellAmount.selector);
         advancedOrderEngine.fillOrders(
@@ -1257,10 +1257,10 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         uint afterWethMaker1 = weth.balanceOf(maker1);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.sellTokenAmount);
-        assertEq(beforeWethMaker2 + sellOrder.buyTokenAmount, afterWethMaker2);
-        assertEq(beforeUsdcMaker1 + buyOrder.buyTokenAmount, afterUsdcMaker1);
-        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sell[0] / 1e18);
+        assertEq(beforeWethMaker2 + buy[0] / 1e18, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buy[1] / 1e18, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + sell[1] / 1e18);
     }
 
     function testMultiplePredicateOR1() public {
@@ -1918,10 +1918,10 @@ contract AdvancedOrderEngineTest is Test {
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         uint afterWethMaker1 = weth.balanceOf(maker1);
 
-        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sellOrder.sellTokenAmount);
-        assertEq(beforeWethMaker2 + sellOrder.buyTokenAmount, afterWethMaker2);
-        assertEq(beforeUsdcMaker1 + buyOrder.buyTokenAmount, afterUsdcMaker1);
-        assertEq(beforeWethMaker1 , afterWethMaker1 + buyOrder.sellTokenAmount);
+        assertEq(beforeUsdcMaker2, afterUsdcMaker2 + sell[0] / 1e18);
+        assertEq(beforeWethMaker2 + buy[0] / 1e18, afterWethMaker2);
+        assertEq(beforeUsdcMaker1 + buy[1] / 1e18, afterUsdcMaker1);
+        assertEq(beforeWethMaker1 , afterWethMaker1 + sell[1] / 1e18);
     }
 
     function testDrain() public {
@@ -2370,11 +2370,11 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](1);
 
-        sell[0] = sellOrder.sellTokenAmount;
+        sell[0] = sellOrder.sellTokenAmount * 1e18;
 
         buy = new uint256[](1);
 
-        buy[0] = sellOrder.buyTokenAmount;
+        buy[0] = sellOrder.buyTokenAmount * 1e18;
 
         signatures = new bytes[](1);
 
@@ -2403,7 +2403,7 @@ contract AdvancedOrderEngineTest is Test {
 
         uint afterUsdcMaker1 = usdc.balanceOf(maker1);
         // uint afterWethMaker1 = weth.balanceOf(maker1);
-        assertEq(beforeUsdcMaker1 + sellOrder.buyTokenAmount, afterUsdcMaker1);
+        assertEq(beforeUsdcMaker1 + buy[0] / 1e18, afterUsdcMaker1);
         // assertEq(beforeWethMaker1, afterWethMaker1);
     }
 
@@ -2566,13 +2566,13 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](2);
 
-        sell[0] = order2.sellTokenAmount;
-        sell[1] = order1.sellTokenAmount;
+        sell[0] = order2.sellTokenAmount * 1e18;
+        sell[1] = order1.sellTokenAmount * 1e18;
 
         buy = new uint256[](2);
 
-        buy[0] = order2.buyTokenAmount;
-        buy[1] = order1.buyTokenAmount;
+        buy[0] = order2.buyTokenAmount * 1e18;
+        buy[1] = order1.buyTokenAmount * 1e18;
 
         signatures = new bytes[](2);
 
@@ -2665,15 +2665,15 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](3);
 
-        sell[0] = order3.sellTokenAmount;
-        sell[1] = order2.sellTokenAmount;        
-        sell[2] = order1.sellTokenAmount;
+        sell[0] = order3.sellTokenAmount * 1e18;
+        sell[1] = order2.sellTokenAmount * 1e18;        
+        sell[2] = order1.sellTokenAmount * 1e18;
 
         buy = new uint256[](3);
 
-        buy[0] = order3.buyTokenAmount;
-        buy[1] = order2.buyTokenAmount;        
-        buy[2] = order1.buyTokenAmount;
+        buy[0] = order3.buyTokenAmount * 1e18;
+        buy[1] = order2.buyTokenAmount * 1e18;        
+        buy[2] = order1.buyTokenAmount * 1e18;
 
         signatures = new bytes[](3);
 
@@ -2770,15 +2770,15 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](3);
 
-        sell[0] = order3.sellTokenAmount;
-        sell[1] = order2.sellTokenAmount / 2;        
-        sell[2] = order1.sellTokenAmount;
+        sell[0] = order3.sellTokenAmount * 1e18;
+        sell[1] = order2.sellTokenAmount / 2 * 1e18;        
+        sell[2] = order1.sellTokenAmount * 1e18;
 
         buy = new uint256[](3);
 
-        buy[0] = order3.buyTokenAmount;
-        buy[1] = order2.buyTokenAmount / 2;        
-        buy[2] = order1.buyTokenAmount;
+        buy[0] = order3.buyTokenAmount * 1e18;
+        buy[1] = order2.buyTokenAmount / 2 * 1e18;        
+        buy[2] = order1.buyTokenAmount * 1e18;
 
         signatures = new bytes[](3);
 
@@ -2864,11 +2864,11 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](1);
 
-        sell[0] = order1.sellTokenAmount;
+        sell[0] = order1.sellTokenAmount * 1e18;
 
         buy = new uint256[](1);
 
-        buy[0] = order1.buyTokenAmount;
+        buy[0] = order1.buyTokenAmount * 1e18;
 
         signatures = new bytes[](1);
 
@@ -2961,15 +2961,15 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](3);
 
-        sell[0] = order3.sellTokenAmount;
-        sell[1] = order2.sellTokenAmount;        
-        sell[2] = order1.sellTokenAmount;
+        sell[0] = order3.sellTokenAmount * 1e18;
+        sell[1] = order2.sellTokenAmount * 1e18;        
+        sell[2] = order1.sellTokenAmount * 1e18;
 
         buy = new uint256[](3);
 
-        buy[0] = order3.buyTokenAmount;
-        buy[1] = order2.buyTokenAmount;       
-        buy[2] = order1.buyTokenAmount;
+        buy[0] = order3.buyTokenAmount * 1e18;
+        buy[1] = order2.buyTokenAmount * 1e18;       
+        buy[2] = order1.buyTokenAmount * 1e18;
 
         signatures = new bytes[](3);
 
@@ -3035,9 +3035,9 @@ contract AdvancedOrderEngineTest is Test {
                 "0x" // post-interaction data 
             );
 
-            sell[i] = orders[i].sellTokenAmount;
+            sell[i] = orders[i].sellTokenAmount * 1e18;
             
-            buy[i] = orders[i].buyTokenAmount;
+            buy[i] = orders[i].buyTokenAmount * 1e18;
 
             (v,r,s) = vm.sign(maker1PrivateKey, _hashTypedDataV4(OrderEngine.hash(orders[i])));
             sellOrderSignature = abi.encodePacked(r, s, v);
@@ -3068,9 +3068,9 @@ contract AdvancedOrderEngineTest is Test {
                 "0x" // post-interaction data 
             );
 
-            sell[i] = orders[i].sellTokenAmount;
+            sell[i] = orders[i].sellTokenAmount * 1e18;
             
-            buy[i] = orders[i].buyTokenAmount;
+            buy[i] = orders[i].buyTokenAmount * 1e18;
 
             (v,r,s) = vm.sign(maker2PrivateKey, _hashTypedDataV4(OrderEngine.hash(orders[i])));
             sellOrderSignature = abi.encodePacked(r, s, v);
@@ -3149,11 +3149,11 @@ contract AdvancedOrderEngineTest is Test {
 
         sell = new uint256[](1);
 
-        sell[0] = order1.sellTokenAmount;
+        sell[0] = order1.sellTokenAmount * 1e18;
 
         buy = new uint256[](1);
 
-        buy[0] = order1.buyTokenAmount;
+        buy[0] = order1.buyTokenAmount * 1e18;
 
         signatures = new bytes[](1);
 

@@ -279,6 +279,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
      * @param borrowedAmounts An array specifying the corresponding amounts of each token the facilitator wants to borrow.
      * @param signatures An array of signatures, each corresponding to an order, used for order validation.
      * @param facilitatorInteraction Calldata for the facilitator's interaction.
+     * @dev `executedSellAmounts` & `executedBuyAmounts` have to be scaled up to 1e36 for precision (i.e multiply by 1e18), we scale them down later.
      */
     function fillOrders(
         OrderEngine.Order[] calldata orders,
@@ -452,6 +453,10 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
                 executedSellAmount,
                 executedBuyAmount
             );
+
+            // scale down
+            executedBuyAmount = executedBuyAmount / ONE;
+            executedSellAmount = executedSellAmount / ONE;
         }
         // If the order is fill or kill.
         else {
@@ -465,6 +470,10 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
 
             // Update the total filled sell amount for this order to match the order's original sell token amount.
             filledSellAmount[orderHash] = executedSellAmount;
+
+            // scale down only buy amount because `executedSellAmount` is updated  above
+            executedBuyAmount = executedBuyAmount / ONE;
+            
         }
 
         // Verifies the signature of an order..
@@ -561,6 +570,9 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         ) {
             revert LimitPriceNotRespected();
         }
+
+        // scale down
+        executedSellAmount = executedSellAmount / ONE;
 
         // Update the total filled sell amount for this order.
         filledSellAmount[orderHash] += executedSellAmount;
@@ -695,6 +707,10 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         uint256 executedBuyAmount
     ) private {
         bytes32 orderHash = getOrderHash(order);
+
+        // scale down
+        executedBuyAmount = executedBuyAmount / ONE;
+        executedSellAmount = executedSellAmount / ONE;
 
         // Transfer the buy tokens to the recipient.
         _sendAsset(order.buyToken, executedBuyAmount, order.recipient);

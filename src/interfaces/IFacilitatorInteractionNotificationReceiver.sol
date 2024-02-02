@@ -17,6 +17,7 @@ interface IFacilitatorInteractionNotificationReceiver {
      * @param borrowedTokens An array of token addresses the facilitator wants to borrow from the vault.
      * @param borrowedAmounts An array specifying the corresponding amounts of each token the facilitator wants to borrow.
      * @param interactionData Interaction calldata
+     * @dev `executedSellAmounts` and `executedBuyAmounts` have to be divided by 1e18 since contract recieves them scaled upto 1e36
      */
     function fillOrderInteraction(
         OrderEngine.Order[] calldata orders,

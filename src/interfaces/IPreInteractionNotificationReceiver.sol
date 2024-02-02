@@ -14,6 +14,7 @@ interface IPreInteractionNotificationReceiver {
      * @param executedBuyAmount Buy token amount offered by the facilitator to the maker.
      * @param filledSellAmount Amount of sell tokens that would be filled after this transaction is completed.
      * @param interactionData Interaction calldata
+     * @dev `executedSellAmounts` & `executedBuyAmounts` DO NOT have to be scaled down by 1e18
      */
     function fillOrderPreInteraction(
         bytes32 orderHash,
