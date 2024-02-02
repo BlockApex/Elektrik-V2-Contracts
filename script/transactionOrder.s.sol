@@ -42,13 +42,13 @@ contract TransactionScript is Script {
 
         uint256[] memory sell = new uint256[](2);
 
-        sell[0] = sellOrder.sellTokenAmount;
-        sell[1] = buyOrder.sellTokenAmount;
+        sell[0] = sellOrder.sellTokenAmount * 1e18;
+        sell[1] = buyOrder.sellTokenAmount * 1e18;
 
         uint256[] memory buy = new uint256[](2);
 
-        buy[0] = sellOrder.buyTokenAmount;
-        buy[1] = buyOrder.buyTokenAmount;
+        buy[0] = sellOrder.buyTokenAmount * 1e18;
+        buy[1] = buyOrder.buyTokenAmount * 1e18;
 
         bytes[] memory sigs = new bytes[](2);
 
