@@ -23,8 +23,8 @@ To run code in this repository, follow these steps:
 
 5. **Run unit tests:**
    ```bash
-   source .env
-   forge test -vvv --rpc-url $MAINNET_RPC_URL --match-path test/AdvancedOrderEngine.t.sol
+   # tests will be ran on ethereum mainnet
+   forge test -vvv --match-path test/AdvancedOrderEngine.t.sol
    ```
 
 6. **Run deploy and setup script**
@@ -35,4 +35,3 @@ To run code in this repository, follow these steps:
    # deploy and verify
    forge script script/deployOrderEngine.s.sol --rpc-url $PEGASUS_RPC_URL --broadcast -vvv --legacy --verify --verifier blockscout --verifier-url https://pegasus.lightlink.io/api/? --watch
    ```
-
