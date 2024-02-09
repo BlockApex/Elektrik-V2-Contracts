@@ -1,0 +1,9 @@
+# Assumptions
+
+Below are the assumptions of Elektrik Limit Order Protocol smart contract:
+
+1. **Operator Functionality**: Only operators, who are whitelisted by the contract owner, can call the `fillOrders` function, responsible for fulfilling limit orders. While operators have the technical ability to call the function with any solution, we assume that operators will always work in the best interest of makers. Therefore, they will consistently aim to provide the best possible solution when calling the `fillOrders` function. In this context, the "best solution" refers to a solution that offers the best buy token price to the order maker. However, even in cases where the operator's solution might not be optimal, the contract ensures that makers receive at least the amount they requested for their orders.
+
+2. **Operator-Facilitator Collaboration**: Facilitators are responsible for proposing solutions to operators. Operators, in turn, call the `fillOrders` function with the optimal solution received from the facilitator. There is a possibility that a particular facilitator's solution offers the best execution price compared to other solutions while also generating a small profit for the facilitator. The operator has complete visibility into the facilitator's interaction, making it technically feasible for the operator to fork the facilitator's target contract and send the calldata to it, thereby earning the profit themselves. However, we assume that the operator will always act in good faith and call the facilitator interaction with the target contract provided by the facilitator.
+
+3. **Vault Token Transfers**: Any individual sending tokens directly to the vault contract (the address at which AdvancedOrderEngine.sol is deployed) is assumed to do so intentionally, fully aware that these tokens can be retrieved by anyone using the facilitator interaction.
