@@ -1,0 +1,28 @@
+name: Solhint Linter
+
+on:
+  push:
+    branches:
+      [feat/operator-restrictions] # This wildcard ensures that all branches are in scope
+
+jobs:
+  lint:
+    name: Lint Solidity Files
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '14'  # You can specify your desired Node.js version here
+
+    - name: Install Solhint
+      run: npm install -g solhint
+
+    - name: Run Solhint
+      run: |
+        solhint --init  
+        solhint 'src/*.sol'

@@ -1,0 +1,24 @@
+name: Run Foundry Tests
+
+on:
+  push:
+    branches:
+      [feat/operator-restrictions]  # This wildcard ensures that all branches are in scope
+
+jobs:
+  check:
+    name: Foundry project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run tests
+        run: forge test -vvv
+
+      - name: Run snapshot
+        run: forge snapshot
