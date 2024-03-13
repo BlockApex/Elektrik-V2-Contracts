@@ -20,8 +20,8 @@ contract DeployScript is Script {
 
         advancedOrderEngine.manageOperatorPrivilege(owner, true);
 
-        address[] memory tokens = new address[](10);
-        bool[] memory access = new bool[](10);
+        address[] memory tokens = new address[](14);
+        bool[] memory access = new bool[](14);
 
         tokens[0] = 0x057e8e2bC40ECff87e6F9b28750D5E7AC004Eab9; // usdt
         tokens[1] = 0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4; // usdc
@@ -33,6 +33,10 @@ contract DeployScript is Script {
         tokens[7] = 0x8488c316e23504B8554e4BdE9651802CD45aea24; // uni
         tokens[8] = 0xeDc98fc6240671dF8e7eD035CE39143320c1A174; // link
         tokens[9] = 0xeEf8e3c318fb3d86489FB258847d028adC629e14; // kub
+        tokens[10] = 0x54390D6FD8C4d4e77c13Ac1E051C9A06eC19112f; // eth-lo
+        tokens[11] = 0xA4CBbd0f503720a0cA3C950D647A8c23FBE9702B; // usdt-lo
+        tokens[12] = 0xab16485D5fC7140b01440C4a1dE5007e9321DB5F; // bnb-lo
+        tokens[13] = 0x46624eA6a260714df1E1EF4c13575Bc7AAdf0f0e; // linl-lo
 
         // Whitelisting tokens
         access[0] = true;
@@ -45,6 +49,10 @@ contract DeployScript is Script {
         access[7] = true;
         access[8] = true;
         access[9] = true;
+        access[10] = true;
+        access[11] = true;
+        access[12] = true;
+        access[13] = true;
         
         advancedOrderEngine.updateTokenWhitelist(tokens, access);
 
