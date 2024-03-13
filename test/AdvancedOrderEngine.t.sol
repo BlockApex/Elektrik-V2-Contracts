@@ -57,12 +57,12 @@ contract AdvancedOrderEngineTest is Test {
 
         advancedOrderEngine.manageOperatorPrivilege(operator, true);
 
-        IERC20[] memory tokens = new IERC20[](3);
+        address[] memory tokens = new address[](3);
         bool[] memory access = new bool[](3);
 
-        tokens[0] = usdc; // Assuming these addresses are valid ERC20 tokens
-        tokens[1] = weth;
-        tokens[2] = wmatic;
+        tokens[0] = address(usdc); // Assuming these addresses are valid ERC20 tokens
+        tokens[1] = address(weth);
+        tokens[2] = address(wmatic);
 
         // Whitelisting tokens
         access[0] = true;
@@ -294,11 +294,11 @@ contract AdvancedOrderEngineTest is Test {
     function testUpdateTokenWhitelist() public {
         vm.startPrank(admin);
 
-        IERC20[] memory tokens = new IERC20[](2);
+        address[] memory tokens = new address[](2);
         bool[] memory access = new bool[](2);
 
-        tokens[0] = IERC20(address(1)); // Assuming these addresses are valid ERC20 tokens
-        tokens[1] = IERC20(address(2));
+        tokens[0] = address(1); // Assuming these addresses are valid ERC20 tokens
+        tokens[1] = address(2);
 
         // Initial status should be not whitelisted
         assertEq(advancedOrderEngine.isWhitelistedToken(tokens[0]), false);
@@ -327,12 +327,12 @@ contract AdvancedOrderEngineTest is Test {
         assertEq(advancedOrderEngine.isWhitelistedToken(tokens[1]), false);
 
         // Test for ZeroAddress revert
-        tokens[0] = IERC20(address(0)); // Zero address token
+        tokens[0] = address(0); // Zero address token
         vm.expectRevert(ZeroAddress.selector);
         advancedOrderEngine.updateTokenWhitelist(tokens, access);
 
         // Test for ArraysLengthMismatch revert
-        IERC20[] memory mismatchedTokens = new IERC20[](1);
+        address[] memory mismatchedTokens = new address[](1);
         bool[] memory mismatchedAccess = new bool[](2);
         vm.expectRevert(ArraysLengthMismatch.selector);
         advancedOrderEngine.updateTokenWhitelist(mismatchedTokens, mismatchedAccess);
@@ -649,8 +649,8 @@ contract AdvancedOrderEngineTest is Test {
 
         // not white listed token
         sellOrder.sellTokenAmount = prevSellAmount;
-        IERC20 prevToken = sellOrder.sellToken;
-        sellOrder.sellToken = wbtc;
+        address prevToken = sellOrder.sellToken;
+        sellOrder.sellToken = address(wbtc);
         orders[0] = sellOrder;
 
         vm.expectRevert(TokenNotWhitelisted.selector);
@@ -666,7 +666,7 @@ contract AdvancedOrderEngineTest is Test {
 
         // not zero address token
         sellOrder.sellTokenAmount = prevSellAmount;
-        sellOrder.sellToken = IERC20(address(0));
+        sellOrder.sellToken = address(0);
         orders[0] = sellOrder;
 
         vm.expectRevert(TokenNotWhitelisted.selector);
@@ -2005,8 +2005,8 @@ contract AdvancedOrderEngineTest is Test {
             operator, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             operator, // Recipient's Ethereum address
-            usdc, // USDC token address - sell token
-            usdc, // MATIC token address - buy token
+            address(usdc), // USDC token address - sell token
+            address(usdc), // MATIC token address - buy token
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -2325,8 +2325,8 @@ contract AdvancedOrderEngineTest is Test {
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
-            weth, // weth token address - sell token
-            usdc, // USDC token address - buy token
+            address(weth), // weth token address - sell token
+            address(usdc), // USDC token address - buy token
             true, // is partially fillable
             "0x", // facilitator call data 
             "", // predicate calldata 
@@ -2514,8 +2514,8 @@ contract AdvancedOrderEngineTest is Test {
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
-            weth, // MATIC token address - sell token
-            usdc, // USDC token address - buy token
+            address(weth), // MATIC token address - sell token
+            address(usdc), // USDC token address - buy token
             true, // is partially fillable
             "0x", // facilitator call data 
             "", // predicate calldata 
@@ -2534,8 +2534,8 @@ contract AdvancedOrderEngineTest is Test {
             maker2, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker2, // Recipient's Ethereum address
-            usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            address(usdc), // USDC token address - sell token
+            address(weth), // MATIC token address - buy token
             true, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -2612,8 +2612,8 @@ contract AdvancedOrderEngineTest is Test {
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
-            usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            address(usdc), // USDC token address - sell token
+            address(weth), // MATIC token address - buy token
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -2630,8 +2630,8 @@ contract AdvancedOrderEngineTest is Test {
             maker2, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker2, // Recipient's Ethereum address
-            usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            address(usdc), // USDC token address - sell token
+            address(weth), // MATIC token address - buy token
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -2648,8 +2648,8 @@ contract AdvancedOrderEngineTest is Test {
             maker3, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker3, // Recipient's Ethereum address
-            weth, // MATIC token address - sell token
-            usdc, // USDC token address - buy token
+            address(weth), // MATIC token address - sell token
+            address(usdc), // USDC token address - buy token
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -2717,8 +2717,8 @@ contract AdvancedOrderEngineTest is Test {
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
-            usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            address(usdc), // USDC token address - sell token
+            address(weth), // MATIC token address - buy token
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -2735,8 +2735,8 @@ contract AdvancedOrderEngineTest is Test {
             maker2, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker2, // Recipient's Ethereum address
-            usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            address(usdc), // USDC token address - sell token
+            address(weth), // MATIC token address - buy token
             true, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -2753,8 +2753,8 @@ contract AdvancedOrderEngineTest is Test {
             maker3, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker3, // Recipient's Ethereum address
-            weth, // MATIC token address - sell token
-            usdc, // USDC token address - buy token
+            address(weth), // MATIC token address - sell token
+            address(usdc), // USDC token address - buy token
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -2830,8 +2830,8 @@ contract AdvancedOrderEngineTest is Test {
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
-            usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            address(usdc), // USDC token address - sell token
+            address(weth), // MATIC token address - buy token
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -2908,8 +2908,8 @@ contract AdvancedOrderEngineTest is Test {
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
-            usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            address(usdc), // USDC token address - sell token
+            address(weth), // MATIC token address - buy token
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -2926,8 +2926,8 @@ contract AdvancedOrderEngineTest is Test {
             maker2, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker2, // Recipient's Ethereum address
-            weth, // MATIC token address - sell token
-            wmatic, // USDC token address - buy token
+            address(weth), // MATIC token address - sell token
+            address(wmatic), // USDC token address - buy token
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -2944,8 +2944,8 @@ contract AdvancedOrderEngineTest is Test {
             maker3, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker3, // Recipient's Ethereum address
-            wmatic, // MATIC token address - sell token
-            usdc, // USDC token address - buy token
+            address(wmatic), // MATIC token address - sell token
+            address(usdc), // USDC token address - buy token
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 
@@ -3026,8 +3026,8 @@ contract AdvancedOrderEngineTest is Test {
                 maker1, // Maker's address
                 operator, // Taker's Ethereum address (or null for public order)
                 maker1, // Recipient's Ethereum address
-                weth, // MATIC token address - sell token
-                usdc, // USDC token address - buy token
+                address(weth), // MATIC token address - sell token
+                address(usdc), // USDC token address - buy token
                 true, // is partially fillable
                 "0x", // facilitator call data 
                 "", // predicate calldata 
@@ -3059,8 +3059,8 @@ contract AdvancedOrderEngineTest is Test {
                 maker2, // Maker's address
                 operator, // Taker's Ethereum address (or null for public order)
                 maker2, // Recipient's Ethereum address
-                usdc, // USDC token address - sell token
-                weth, // MATIC token address - buy token
+                address(usdc), // USDC token address - sell token
+                address(weth), // MATIC token address - buy token
                 true, // is partially fillable
                 "0x", // facilitator calldata 
                 "", // predicate calldata 
@@ -3112,8 +3112,8 @@ contract AdvancedOrderEngineTest is Test {
             maker1, // Maker's address
             operator, // Taker's Ethereum address (or null for public order)
             maker1, // Recipient's Ethereum address
-            usdc, // USDC token address - sell token
-            weth, // MATIC token address - buy token
+            address(usdc), // USDC token address - sell token
+            address(weth), // MATIC token address - buy token
             false, // is partially fillable
             "0x", // facilitator calldata 
             "", // predicate calldata 

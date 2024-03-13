@@ -20,19 +20,19 @@ contract DeployScript is Script {
 
         advancedOrderEngine.manageOperatorPrivilege(owner, true);
 
-        IERC20[] memory tokens = new IERC20[](10);
+        address[] memory tokens = new address[](10);
         bool[] memory access = new bool[](10);
 
-        tokens[0] = IERC20(0x057e8e2bC40ECff87e6F9b28750D5E7AC004Eab9); // usdt
-        tokens[1] = IERC20(0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4); // usdc
-        tokens[2] = IERC20(0x4B6b9B31c72836806B0B1104Cf1CdAB8A0E3BD66); // dai
-        tokens[3] = IERC20(0x9Ee1Aa18F3FEB435f811d6AE2F71B7D2a4Adce0B); // wbtc
-        tokens[4] = IERC20(0x124ABC63F20c6e2088078bd61e2Db100Ff30836e); // arb
-        tokens[5] = IERC20(0xecf6Bdde77C77863Ae842b145f9ab296E5eAcAF9); // op
-        tokens[6] = IERC20(0x8bA5b0452b0a4da211579AA2e105c3da7C0Ad36c); // matic
-        tokens[7] = IERC20(0x8488c316e23504B8554e4BdE9651802CD45aea24); // uni
-        tokens[8] = IERC20(0xeDc98fc6240671dF8e7eD035CE39143320c1A174); // link
-        tokens[9] = IERC20(0xeEf8e3c318fb3d86489FB258847d028adC629e14); // kub
+        tokens[0] = 0x057e8e2bC40ECff87e6F9b28750D5E7AC004Eab9; // usdt
+        tokens[1] = 0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4; // usdc
+        tokens[2] = 0x4B6b9B31c72836806B0B1104Cf1CdAB8A0E3BD66; // dai
+        tokens[3] = 0x9Ee1Aa18F3FEB435f811d6AE2F71B7D2a4Adce0B; // wbtc
+        tokens[4] = 0x124ABC63F20c6e2088078bd61e2Db100Ff30836e; // arb
+        tokens[5] = 0xecf6Bdde77C77863Ae842b145f9ab296E5eAcAF9; // op
+        tokens[6] = 0x8bA5b0452b0a4da211579AA2e105c3da7C0Ad36c; // matic
+        tokens[7] = 0x8488c316e23504B8554e4BdE9651802CD45aea24; // uni
+        tokens[8] = 0xeDc98fc6240671dF8e7eD035CE39143320c1A174; // link
+        tokens[9] = 0xeEf8e3c318fb3d86489FB258847d028adC629e14; // kub
 
         // Whitelisting tokens
         access[0] = true;
