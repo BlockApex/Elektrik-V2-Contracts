@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {ECDSA} from "openzeppelin/utils/cryptography/EIP712.sol";
 
 library OrderEngine {
@@ -14,8 +13,8 @@ library OrderEngine {
         address maker;
         address operator; // Null on public orders
         address recipient;
-        IERC20 sellToken;
-        IERC20 buyToken;
+        address sellToken;
+        address buyToken;
         bool isPartiallyFillable;
         bytes32 extraData;
         bytes predicateCalldata;
@@ -34,8 +33,8 @@ library OrderEngine {
             "address maker,"
             "address operator,"
             "address recipient,"
-            "IERC20 sellToken,"
-            "IERC20 buyToken,"
+            "address sellToken,"
+            "address buyToken,"
             "bool isPartiallyFillable,"
             "bytes32 extraData,"
             "bytes predicateCalldata,"
@@ -124,8 +123,8 @@ library OrderEngine {
             maker: maker,
             operator: operator,
             recipient: recipient,
-            sellToken: IERC20(sellTokenAddress),
-            buyToken: IERC20(buyTokenAddress),
+            sellToken: sellTokenAddress,
+            buyToken: buyTokenAddress,
             isPartiallyFillable: isPartiallyFillable,
             extraData: extraData,
             predicateCalldata: abi.encodePacked(predicateCalldata),

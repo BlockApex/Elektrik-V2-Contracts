@@ -46,7 +46,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
     address public feeCollector;
 
     // Stores the whitelist status of each token.
-    mapping(IERC20 => bool) public isWhitelistedToken;
+    mapping(address => bool) public isWhitelistedToken;
 
     // Tracks the amount of tokens sold for each order using the order hash.
     mapping(bytes32 => uint256) public filledSellAmount;
@@ -150,7 +150,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
      * @param access Array of boolean values indicating whether to whitelist (true) a token or remove from whitelist (false).
      */
     function updateTokenWhitelist(
-        IERC20[] calldata tokens,
+        address[] calldata tokens,
         bool[] calldata access
     ) external onlyOwner {
         /**
@@ -170,7 +170,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
 
         for (uint256 i; i < tokens.length; ) {
             // Revert if the token address is a zero address.
-            if (address(tokens[i]) == address(0)) {
+            if (tokens[i] == address(0)) {
                 revert ZeroAddress();
             }
 
@@ -181,7 +181,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
 
             isWhitelistedToken[tokens[i]] = access[i];
 
-            emit WhitelistStatusUpdated(address(tokens[i]), access[i]);
+            emit WhitelistStatusUpdated(tokens[i], access[i]);
 
             unchecked {
                 ++i;
@@ -494,10 +494,10 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         );
 
         // Receive sell tokens from the maker.
-        _receiveAsset(order.sellToken, executedSellAmount, order.maker);
+        _receiveAsset(IERC20(order.sellToken), executedSellAmount, order.maker);
 
         // Receive fees from the maker to the fee collector address.
-        if(executedFeeAmount != 0) { _receiveAsset(order.sellToken, executedFeeAmount, feeCollector); }
+        if(executedFeeAmount != 0) { _receiveAsset(IERC20(order.sellToken), executedFeeAmount, feeCollector); }
     }
 
     function _validateOrder(
@@ -539,8 +539,8 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         // Revert if any address in the order is zero.
         if (
             order.maker == address(0) ||
-            address(order.buyToken) == address(0) ||
-            address(order.sellToken) == address(0) ||
+            order.buyToken == address(0) ||
+            order.sellToken == address(0) ||
             order.recipient == address(0)
         ) {
             revert ZeroAddress();
@@ -713,7 +713,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         executedSellAmount = executedSellAmount / ONE;
 
         // Transfer the buy tokens to the recipient.
-        _sendAsset(order.buyToken, executedBuyAmount, order.recipient);
+        _sendAsset(IERC20(order.buyToken), executedBuyAmount, order.recipient);
 
         // Local copy to save gas.
         uint256 sellTokensFilled = filledSellAmount[orderHash];
@@ -728,7 +728,7 @@ contract AdvancedOrderEngine is ReentrancyGuard, Vault, Ownable2Step, EIP712 {
         );
 
         // Emit an event to log the order fill.
-        emit OrderFill(orderHash, sellTokensFilled, executedSellAmount, executedBuyAmount, address(order.sellToken), address(order.buyToken), order.nonce, order.feeAmounts);
+        emit OrderFill(orderHash, sellTokensFilled, executedSellAmount, executedBuyAmount, order.sellToken, order.buyToken, order.nonce, order.feeAmounts);
     }
 
     function _executePostInteraction(

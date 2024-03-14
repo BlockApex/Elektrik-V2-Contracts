@@ -20,19 +20,23 @@ contract DeployScript is Script {
 
         advancedOrderEngine.manageOperatorPrivilege(owner, true);
 
-        IERC20[] memory tokens = new IERC20[](10);
-        bool[] memory access = new bool[](10);
+        address[] memory tokens = new address[](14);
+        bool[] memory access = new bool[](14);
 
-        tokens[0] = IERC20(0x057e8e2bC40ECff87e6F9b28750D5E7AC004Eab9); // usdt
-        tokens[1] = IERC20(0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4); // usdc
-        tokens[2] = IERC20(0x4B6b9B31c72836806B0B1104Cf1CdAB8A0E3BD66); // dai
-        tokens[3] = IERC20(0x9Ee1Aa18F3FEB435f811d6AE2F71B7D2a4Adce0B); // wbtc
-        tokens[4] = IERC20(0x124ABC63F20c6e2088078bd61e2Db100Ff30836e); // arb
-        tokens[5] = IERC20(0xecf6Bdde77C77863Ae842b145f9ab296E5eAcAF9); // op
-        tokens[6] = IERC20(0x8bA5b0452b0a4da211579AA2e105c3da7C0Ad36c); // matic
-        tokens[7] = IERC20(0x8488c316e23504B8554e4BdE9651802CD45aea24); // uni
-        tokens[8] = IERC20(0xeDc98fc6240671dF8e7eD035CE39143320c1A174); // link
-        tokens[9] = IERC20(0xeEf8e3c318fb3d86489FB258847d028adC629e14); // kub
+        tokens[0] = 0x057e8e2bC40ECff87e6F9b28750D5E7AC004Eab9; // usdt
+        tokens[1] = 0x3cf2c147d43C98Fa96d267572e3FD44A4D3940d4; // usdc
+        tokens[2] = 0x4B6b9B31c72836806B0B1104Cf1CdAB8A0E3BD66; // dai
+        tokens[3] = 0x9Ee1Aa18F3FEB435f811d6AE2F71B7D2a4Adce0B; // wbtc
+        tokens[4] = 0x124ABC63F20c6e2088078bd61e2Db100Ff30836e; // arb
+        tokens[5] = 0xecf6Bdde77C77863Ae842b145f9ab296E5eAcAF9; // op
+        tokens[6] = 0x8bA5b0452b0a4da211579AA2e105c3da7C0Ad36c; // matic
+        tokens[7] = 0x8488c316e23504B8554e4BdE9651802CD45aea24; // uni
+        tokens[8] = 0xeDc98fc6240671dF8e7eD035CE39143320c1A174; // link
+        tokens[9] = 0xeEf8e3c318fb3d86489FB258847d028adC629e14; // kub
+        tokens[10] = 0x54390D6FD8C4d4e77c13Ac1E051C9A06eC19112f; // eth-lo
+        tokens[11] = 0xA4CBbd0f503720a0cA3C950D647A8c23FBE9702B; // usdt-lo
+        tokens[12] = 0xab16485D5fC7140b01440C4a1dE5007e9321DB5F; // bnb-lo
+        tokens[13] = 0x46624eA6a260714df1E1EF4c13575Bc7AAdf0f0e; // linl-lo
 
         // Whitelisting tokens
         access[0] = true;
@@ -45,6 +49,10 @@ contract DeployScript is Script {
         access[7] = true;
         access[8] = true;
         access[9] = true;
+        access[10] = true;
+        access[11] = true;
+        access[12] = true;
+        access[13] = true;
         
         advancedOrderEngine.updateTokenWhitelist(tokens, access);
 
